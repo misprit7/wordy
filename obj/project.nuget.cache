@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "dgSpecHash": "KObT0V1ZtOc0rAbTaB0keqf02uCuyGyA6VDgAb5aBvYIsUerkTFRXJaRWKu7lPTdirbLCE2+IuXlJP5zokxLlw==",
+  "success": true,
+  "projectFilePath": "/home/xander/dev/test/word-editor/word-editor.csproj",
+  "expectedPackageFiles": [
+    "/home/xander/.nuget/packages/documentformat.openxml/2.15.0/documentformat.openxml.2.15.0.nupkg.sha512",
+    "/home/xander/.nuget/packages/documentformat.openxml.features/2.15.0/documentformat.openxml.features.2.15.0.nupkg.sha512",
+    "/home/xander/.nuget/packages/documentformat.openxml.linq/2.15.0/documentformat.openxml.linq.2.15.0.nupkg.sha512",
+    "/home/xander/.nuget/packages/system.io.packaging/4.7.0/system.io.packaging.4.7.0.nupkg.sha512",
+    "/home/xander/.nuget/packages/microsoft.aspnetcore.app.ref/6.0.0/microsoft.aspnetcore.app.ref.6.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
