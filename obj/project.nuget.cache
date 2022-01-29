@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "KObT0V1ZtOc0rAbTaB0keqf02uCuyGyA6VDgAb5aBvYIsUerkTFRXJaRWKu7lPTdirbLCE2+IuXlJP5zokxLlw==",
+  "dgSpecHash": "yUOgx59sLliDe7Dnqg6BOXuBClCnnbQ+uWxl4ci4oq0NKPQI/qsF+XXIOAO2AwH1Rf8ZRAjK5tnwU6qDYD0gFg==",
   "success": true,
-  "projectFilePath": "/home/xander/dev/test/word-editor/word-editor.csproj",
+  "projectFilePath": "/home/xander/dev/word-editor/word-editor.csproj",
   "expectedPackageFiles": [
     "/home/xander/.nuget/packages/documentformat.openxml/2.15.0/documentformat.openxml.2.15.0.nupkg.sha512",
     "/home/xander/.nuget/packages/documentformat.openxml.features/2.15.0/documentformat.openxml.features.2.15.0.nupkg.sha512",

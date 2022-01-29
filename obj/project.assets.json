@@ -158,11 +158,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/xander/dev/test/word-editor/word-editor.csproj",
+      "projectUniqueName": "/home/xander/dev/word-editor/word-editor.csproj",
       "projectName": "word-editor",
-      "projectPath": "/home/xander/dev/test/word-editor/word-editor.csproj",
+      "projectPath": "/home/xander/dev/word-editor/word-editor.csproj",
       "packagesPath": "/home/xander/.nuget/packages/",
-      "outputPath": "/home/xander/dev/test/word-editor/obj/",
+      "outputPath": "/home/xander/dev/word-editor/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/xander/.nuget/NuGet/NuGet.Config"
