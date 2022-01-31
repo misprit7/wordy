@@ -9,5 +9,7 @@ foreach(var b in body.Elements()){
     Console.WriteLine(b.InnerText);
 }
 
+VariableExprAST v = new VariableExprAST("test");
+
 
 

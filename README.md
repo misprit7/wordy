@@ -13,5 +13,5 @@
 
 Until now that is. 
 
-Wordy is the final iteration of language and IDE design. It combines the effectiveness of a Microsoft Word, a powerful document editing tool with over 30 years of industry experience, with the reliability of some random guy's compiler hobby project with literally now experience in compiler design. For too long the ``.docx`` extension has been associated with business people and writers. It is time to claim it as the extension of the *programmer*. 
+Wordy is the final iteration of language and IDE design. It combines the effectiveness of a Microsoft Word, a powerful document editing tool with over 30 years of industry usage, with the reliability of some random guy's compiler hobby project with literally no experience in compiler design. For too long the ``.docx`` extension has been associated with business people and writers. It is time to claim it as the extension of the *programmer*. 
 
