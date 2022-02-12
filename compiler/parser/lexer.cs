@@ -15,6 +15,7 @@ public class Lexer {
     private DocumentFormat.OpenXml.OpenXmlElement curElement;
     private CharEnumerator curString = "".GetEnumerator();
     private bool curStringFinished = false;
+    private char lastChar = ' ';
 
     private string identifierString = "";
     private double numVal = 0;
@@ -41,45 +42,45 @@ public class Lexer {
 
     public Token GetToken(){
         // Get rid of whitespace
-        while(Char.IsWhiteSpace(curString.Current))
-            if(curStringFinished = !curString.MoveNext()) break;
+        while(Char.IsWhiteSpace(lastChar))
+            lastChar = getChar();
 
-        // If more string to parse
-        if(!curStringFinished){
-            //Handle identifiers
-            if(Char.IsLetter(curString.Current)){
-                // First character
-                identifierString = char.ToString(curString.Current);
-                // Finish rest of identifier
-                do {
-                    identifierString += curString.Current;
-                    if(curStringFinished = !curString.MoveNext()) break;
-                } while(Char.IsLetterOrDigit(curString.Current));
+        //Handle identifiers
+        if(Char.IsLetter(lastChar)){
+            // Finish rest of identifier
+            do {
+                identifierString += lastChar;
+                lastChar = getChar();
+            } while(Char.IsLetterOrDigit(lastChar));
 
-                return Token.identifier;
-            }
-            // Handle numbers
-            if(char.IsDigit(curString.Current) || curString.Current == '.'){
-                string numStr = "";
-                do {
-                    numStr += curString.Current;
-                    if(curStringFinished = !curString.MoveNext()) break;
-                } while(char.IsDigit(curString.Current) || curString.Current == '.');
-
-                numVal = Double.Parse(numStr);
-                return Token.number;
-            }
-            // Other characters, e.g. '+'
-            char otherChar = curString.Current;
-            curStringFinished = curString.MoveNext();
-            // Explicit cast since positive values of token correspond to ascii
-            return (Token) otherChar;
-        } else if(curElement.ChildElements.Count > 0){
-            
-        } else {
-            
+            return Token.identifier;
         }
-        return (Token) 1;
+        // Handle numbers
+        if(char.IsDigit(lastChar) || lastChar == '.'){
+            string numStr = "";
+            do {
+                numStr += lastChar;
+                lastChar = getChar();
+            } while(char.IsDigit(lastChar) || lastChar == '.');
+
+            numVal = Double.Parse(numStr);
+            return Token.number;
+        }
+        // Other characters, e.g. '+'
+        char otherChar = lastChar;
+        lastChar = getChar();
+        // Explicit cast since positive values of token correspond to ascii
+        return (Token) otherChar;
+    }
+
+    private char getChar(){
+        if(!curStringFinished){
+            curString.MoveNext();
+            return curString.Current;
+        }
+
+
+        return curString.Current;
     }
 
 }
