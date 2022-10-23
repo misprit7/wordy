@@ -15,3 +15,19 @@ Until now that is.
 
 Wordy is the final iteration of language and IDE design. It combines the effectiveness of a Microsoft Word, a powerful document editing tool with over 30 years of industry usage, with the reliability of some random guy's compiler hobby project with literally no experience in compiler design. For too long the ``.docx`` extension has been associated with business people and writers. It is time to claim it as the extension of the *programmer*. 
 
+# Setup
+
+This project is written in C#, not because I particular like the language but because of the [Open XML](https://learn.microsoft.com/en-us/office/open-xml/open-xml-sdk) library as well as being kind of fitting for an over the top Microsoft parody project. 
+
+## Linux
+
+Install [dotnet](https://wiki.archlinux.org/title/.NET)  on whatever distro you're running. Run the project with
+
+```bash
+dotnet run compiler
+```
+
+## Windows
+
+Why in the world would you want to run this project on Windows? Can't help you there. 
+
