@@ -24,7 +24,8 @@ This project is written in C#, not because I particular like the language but be
 Install [dotnet](https://wiki.archlinux.org/title/.NET)  on whatever distro you're running. Run the project with
 
 ```bash
-dotnet run compiler
+cd compiler
+dotnet run
 ```
 
 ## Windows

@@ -1,9 +1,10 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 
-Lexer lexer = new Lexer("../wordy-test.docx");
+Lexer lexer = new Lexer("../samples/docx/wordy-test-2.docx");
 
-lexer.PrintDoc();
+lexer.parseFunction();
+/* lexer.PrintDoc(); */
 /* lexer.BodyElements(); */
 
 

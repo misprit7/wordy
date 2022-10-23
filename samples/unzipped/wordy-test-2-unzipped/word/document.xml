@@ -1,0 +1,223 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" mc:Ignorable="w14 w15 wp14">
+  <w:body>
+    <w:sdt>
+      <w:sdtPr>
+        <w:id w:val="688099577"/>
+        <w:docPartObj>
+          <w:docPartGallery w:val="Table of Contents"/>
+          <w:docPartUnique/>
+        </w:docPartObj>
+      </w:sdtPr>
+      <w:sdtContent>
+        <w:p w:rsidR="2683ADC8" w:rsidP="2683ADC8" w:rsidRDefault="2683ADC8" w14:paraId="2FE2E18D" w14:textId="07AD27D4">
+          <w:pPr>
+            <w:pStyle w:val="TOC1"/>
+            <w:tabs>
+              <w:tab w:val="right" w:leader="dot" w:pos="9360"/>
+            </w:tabs>
+            <w:bidi w:val="0"/>
+            <w:rPr>
+              <w:rStyle w:val="Hyperlink"/>
+            </w:rPr>
+          </w:pPr>
+          <w:r>
+            <w:fldChar w:fldCharType="begin"/>
+          </w:r>
+          <w:r>
+            <w:instrText xml:space="preserve">TOC \o \z \u \h</w:instrText>
+          </w:r>
+          <w:r>
+            <w:fldChar w:fldCharType="separate"/>
+          </w:r>
+          <w:hyperlink w:anchor="_Toc997406850">
+            <w:r w:rsidRPr="2683ADC8" w:rsidR="2683ADC8">
+              <w:rPr>
+                <w:rStyle w:val="Hyperlink"/>
+              </w:rPr>
+              <w:t>Fun1</w:t>
+            </w:r>
+            <w:r>
+              <w:tab/>
+            </w:r>
+            <w:r>
+              <w:fldChar w:fldCharType="begin"/>
+            </w:r>
+            <w:r>
+              <w:instrText xml:space="preserve">PAGEREF _Toc997406850 \h</w:instrText>
+            </w:r>
+            <w:r>
+              <w:fldChar w:fldCharType="separate"/>
+            </w:r>
+            <w:r w:rsidRPr="2683ADC8" w:rsidR="2683ADC8">
+              <w:rPr>
+                <w:rStyle w:val="Hyperlink"/>
+              </w:rPr>
+              <w:t>1</w:t>
+            </w:r>
+            <w:r>
+              <w:fldChar w:fldCharType="end"/>
+            </w:r>
+          </w:hyperlink>
+        </w:p>
+        <w:p w:rsidR="2683ADC8" w:rsidP="2683ADC8" w:rsidRDefault="2683ADC8" w14:paraId="6D7F85A1" w14:textId="40BD6DE7">
+          <w:pPr>
+            <w:pStyle w:val="TOC1"/>
+            <w:tabs>
+              <w:tab w:val="right" w:leader="dot" w:pos="9360"/>
+            </w:tabs>
+            <w:bidi w:val="0"/>
+            <w:rPr>
+              <w:rStyle w:val="Hyperlink"/>
+            </w:rPr>
+          </w:pPr>
+          <w:hyperlink w:anchor="_Toc71884251">
+            <w:r w:rsidRPr="2683ADC8" w:rsidR="2683ADC8">
+              <w:rPr>
+                <w:rStyle w:val="Hyperlink"/>
+              </w:rPr>
+              <w:t>Main</w:t>
+            </w:r>
+            <w:r>
+              <w:tab/>
+            </w:r>
+            <w:r>
+              <w:fldChar w:fldCharType="begin"/>
+            </w:r>
+            <w:r>
+              <w:instrText xml:space="preserve">PAGEREF _Toc71884251 \h</w:instrText>
+            </w:r>
+            <w:r>
+              <w:fldChar w:fldCharType="separate"/>
+            </w:r>
+            <w:r w:rsidRPr="2683ADC8" w:rsidR="2683ADC8">
+              <w:rPr>
+                <w:rStyle w:val="Hyperlink"/>
+              </w:rPr>
+              <w:t>1</w:t>
+            </w:r>
+            <w:r>
+              <w:fldChar w:fldCharType="end"/>
+            </w:r>
+          </w:hyperlink>
+          <w:r>
+            <w:fldChar w:fldCharType="end"/>
+          </w:r>
+        </w:p>
+      </w:sdtContent>
+    </w:sdt>
+    <w:p xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordml" w:rsidP="2683ADC8" w14:paraId="2C078E63" wp14:textId="2837A90B">
+      <w:pPr>
+        <w:pStyle w:val="Heading1"/>
+      </w:pPr>
+      <w:bookmarkStart w:name="_GoBack" w:id="0"/>
+      <w:bookmarkEnd w:id="0"/>
+      <w:bookmarkStart w:name="_Toc997406850" w:id="2101748617"/>
+      <w:r w:rsidR="6B8F00CF">
+        <w:rPr/>
+        <w:t>Fun1</w:t>
+      </w:r>
+      <w:bookmarkEnd w:id="2101748617"/>
+    </w:p>
+    <w:p w:rsidR="3E9878C2" w:rsidP="2683ADC8" w:rsidRDefault="3E9878C2" w14:paraId="079D83A3" w14:textId="06FEE547">
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+      </w:pPr>
+      <w:r w:rsidR="3E9878C2">
+        <w:rPr/>
+        <w:t>x, y</w:t>
+      </w:r>
+    </w:p>
+    <w:tbl>
+      <w:tblPr>
+        <w:tblStyle w:val="TableGrid"/>
+        <w:tblW w:w="0" w:type="auto"/>
+        <w:tblLayout w:type="fixed"/>
+        <w:tblLook w:val="06A0" w:firstRow="1" w:lastRow="0" w:firstColumn="1" w:lastColumn="0" w:noHBand="1" w:noVBand="1"/>
+      </w:tblPr>
+      <w:tblGrid>
+        <w:gridCol w:w="9360"/>
+      </w:tblGrid>
+      <w:tr w:rsidR="2683ADC8" w:rsidTr="2683ADC8" w14:paraId="45E60D77">
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="9360" w:type="dxa"/>
+            <w:tcMar/>
+          </w:tcPr>
+          <w:p w:rsidR="3E9878C2" w:rsidP="2683ADC8" w:rsidRDefault="3E9878C2" w14:paraId="5CE77E57" w14:textId="06E20632">
+            <w:pPr>
+              <w:pStyle w:val="Normal"/>
+            </w:pPr>
+            <w:proofErr w:type="spellStart"/>
+            <w:r w:rsidR="3E9878C2">
+              <w:rPr/>
+              <w:t>x+y</w:t>
+            </w:r>
+            <w:proofErr w:type="spellEnd"/>
+          </w:p>
+        </w:tc>
+      </w:tr>
+    </w:tbl>
+    <w:p w:rsidR="2683ADC8" w:rsidP="2683ADC8" w:rsidRDefault="2683ADC8" w14:paraId="03A53E1D" w14:textId="17761F9F">
+      <w:pPr>
+        <w:pStyle w:val="Normal"/>
+      </w:pPr>
+    </w:p>
+    <w:p w:rsidR="3E9878C2" w:rsidP="2683ADC8" w:rsidRDefault="3E9878C2" w14:paraId="7062A583" w14:textId="03F6E279">
+      <w:pPr>
+        <w:pStyle w:val="Heading1"/>
+      </w:pPr>
+      <w:bookmarkStart w:name="_Toc71884251" w:id="980792524"/>
+      <w:r w:rsidR="3E9878C2">
+        <w:rPr/>
+        <w:t>Main</w:t>
+      </w:r>
+      <w:bookmarkEnd w:id="980792524"/>
+    </w:p>
+    <w:tbl>
+      <w:tblPr>
+        <w:tblStyle w:val="TableGrid"/>
+        <w:tblW w:w="0" w:type="auto"/>
+        <w:tblLayout w:type="fixed"/>
+        <w:tblLook w:val="06A0" w:firstRow="1" w:lastRow="0" w:firstColumn="1" w:lastColumn="0" w:noHBand="1" w:noVBand="1"/>
+      </w:tblPr>
+      <w:tblGrid>
+        <w:gridCol w:w="9360"/>
+      </w:tblGrid>
+      <w:tr w:rsidR="2683ADC8" w:rsidTr="2683ADC8" w14:paraId="7771B209">
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="9360" w:type="dxa"/>
+            <w:tcMar/>
+          </w:tcPr>
+          <w:p w:rsidR="3E9878C2" w:rsidP="2683ADC8" w:rsidRDefault="3E9878C2" w14:paraId="23F3D4CC" w14:textId="7A6D98F3">
+            <w:pPr>
+              <w:pStyle w:val="Normal"/>
+            </w:pPr>
+            <w:r w:rsidR="3E9878C2">
+              <w:rPr/>
+              <w:t>Fun1</w:t>
+            </w:r>
+            <w:r w:rsidRPr="2683ADC8" w:rsidR="3E9878C2">
+              <w:rPr>
+                <w:vertAlign w:val="subscript"/>
+              </w:rPr>
+              <w:t>1,2</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+    </w:tbl>
+    <w:p w:rsidR="2683ADC8" w:rsidP="2683ADC8" w:rsidRDefault="2683ADC8" w14:paraId="460A4AB0" w14:textId="64BC8FBC">
+      <w:pPr>
+        <w:pStyle w:val="Normal"/>
+      </w:pPr>
+    </w:p>
+    <w:sectPr>
+      <w:pgSz w:w="12240" w:h="15840" w:orient="portrait"/>
+      <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/>
+      <w:cols w:space="720"/>
+      <w:docGrid w:linePitch="360"/>
+    </w:sectPr>
+  </w:body>
+</w:document>

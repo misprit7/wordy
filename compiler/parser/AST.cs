@@ -1,8 +1,11 @@
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
+
 /*****************************************************************************/
 // Expression ASTs
 /*****************************************************************************/
 
-public class ExprAST {
+public abstract class ExprAST {
     
 }
 
@@ -51,6 +54,18 @@ public class PrototypeAST {
         name = Name;
         args = Args;
     }
+
+    public PrototypeAST(Paragraph Name, Paragraph Args){
+        name = Name.Descendants<Run>().First().InnerText;
+        args = new List<string>();
+        foreach(Run r in Args.Descendants<Run>()){
+            args.Add(r.InnerText);
+        }
+        Console.WriteLine(name);
+        foreach(var a in args){
+            Console.WriteLine(a);
+        }
+    }
 }
 
 public class FunctionAST {
@@ -60,6 +75,12 @@ public class FunctionAST {
     public FunctionAST(PrototypeAST Proto, ExprAST Body){
         proto = Proto;
         body = Body;
+    }
+
+    public FunctionAST(Paragraph name, Paragraph args, Table body){
+        proto = new PrototypeAST(name, args);
+
+        body = null;
     }
 }
 

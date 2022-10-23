@@ -1,3 +1,4 @@
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 
@@ -30,7 +31,33 @@ public class Lexer {
             Console.Error.Write("Document contains no body!");
             return;
         }
-        curElement = body;
+        curElement = body.FirstChild;
+    }
+
+    /**
+     * Generic error thrower
+     */
+    private void parseError(){
+        Console.Error.WriteLine("Error parsing document!");
+    }
+
+    /**
+     * Assumes that curElement is top level header
+     * returns null if no function can be parsed
+     */
+    public FunctionAST parseFunction(){
+        Paragraph name = curElement.NextSibling<Paragraph>();
+        if(name is null) return null;
+        OpenXmlElement next = name.NextSibling();
+        if(next is null) return null;
+        Paragraph args = null;
+        if(next is Paragraph){
+            args = name.NextSibling<Paragraph>();
+            next = args.NextSibling();
+        } else next = next.NextSibling();
+        if(!(next is Table)) return null;
+        curElement = next;
+        return new FunctionAST(name, args, (Table)next);
     }
 
     public void PrintDoc(){
