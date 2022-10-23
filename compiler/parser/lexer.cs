@@ -9,12 +9,15 @@ public enum Token {
 }
 
 public class Lexer {
+
+    static char EOF = (char)0x1A;
+
     WordprocessingDocument doc;
     Body body;
 
     private DocumentFormat.OpenXml.OpenXmlElement curElement;
     private CharEnumerator curString = "".GetEnumerator();
-    private bool curStringFinished = false;
+    /* private bool curStringFinished = false; */
     private char lastChar = ' ';
 
     private string identifierString = "";
@@ -31,8 +34,13 @@ public class Lexer {
     }
 
     public void PrintDoc(){
-        foreach(var b in body.Elements()){
-            Console.WriteLine(b.InnerText);
+        /* foreach(var b in body.Elements()){ */
+        /*     Console.WriteLine(b.InnerText); */
+        /* } */
+        char c = getChar();
+        while(c != EOF){
+            c = getChar();
+            Console.Write(c);
         }
     }
 
@@ -74,11 +82,50 @@ public class Lexer {
     }
 
     private char getChar(){
-        if(!curStringFinished){
-            curString.MoveNext();
+        bool hasNext = curString.MoveNext();
+        // Try current string
+        if(hasNext){ 
             return curString.Current;
         }
 
+        bool skipChildren = false;
+        do {
+            DocumentFormat.OpenXml.OpenXmlElement? next;
+            
+            // First try children, unless we're already at a run in which case we're at the bottom
+            if(!(curElement is Run) && !skipChildren){
+                next = curElement.FirstChild;
+                /* Console.WriteLine("Trying child"); */
+            } else{
+                next = null;
+            }
+
+            // Next try sibling
+            if(next == null){
+                next = curElement.NextSibling();
+                /* Console.WriteLine("Trying sibling"); */
+            }
+
+            // Try parent
+            if(next == null){
+                next = curElement.Parent;
+                /* Console.WriteLine("Trying parent"); */
+                // Ensure we don't loop between parent and children
+                skipChildren = true;
+            }else {
+                skipChildren = false;
+            }
+
+            // Finally if nothing works we're at the end of the file
+            if(next == null){
+                return EOF;
+            }
+            curElement = next;
+        } while(!(curElement is Run) || curElement.InnerText.Length == 0);
+
+        curString = curElement.InnerText.GetEnumerator();
+        curString.MoveNext();
+        /* Console.WriteLine("Current Text:" + curElement.InnerText+"Length:" + curElement.InnerText.Length); */
 
         return curString.Current;
     }
