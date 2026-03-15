@@ -82,6 +82,15 @@ Formatting nesting represents parentheses. Applying a format opens a bracket, en
 - **For loop**: table with 3 cells in the top row (init | condition | step). Remaining rows = body. For loop init variables are hoisted before the for statement so they remain accessible after the loop.
 - **Nested control flow**: for loop body rows can form an if/match pattern (merged row + branch row). Tables can also be nested inside table cells (e.g., for loop inside an if branch).
 
+### Arrays
+- **Numbered lists** = array literals. Each list item = one element. Element type determined by font of list items.
+  - 1D: flat numbered list → `new int[] {1, 2, 3}` (all items at indent level 0)
+  - 2D: nested numbered list → `new int[,] {{1, 2}, {3, 4}}` (blank top-level items as row separators, sub-items at indent level 1 as values)
+- **Subscript** = array access. `arr` with subscript `i` → `arr[i]`.
+  - Multidimensional: subscript `i,j` → `arr[i, j]` (comma-separated indices in subscript text).
+- Array assignment: `variable ←` paragraph followed by a numbered list = assign array literal to variable. Works with drop cap entry points too.
+- Inside formatting brackets, subscript after an identifier is parsed as array access, not as a function call argument.
+
 ### Other syntax
 - **Right-aligned** text = return value.
 - **`print`** = built-in function (call like any function, emits `Console.WriteLine`).
@@ -100,6 +109,7 @@ dotnet run -- program.docx --dump-ir   # show formatting-aware IR
 dotnet run -- program.docx --dump-raw  # show raw OpenXML structure
 dotnet run -- --gen fibonacci out.docx       # generate test .docx
 dotnet run -- --gen comprehensive out.docx   # generate comprehensive test
+dotnet run -- --gen arrays out.docx          # generate array features test
 ```
 
 ## Test programs
@@ -119,10 +129,15 @@ dotnet run -- --gen comprehensive out.docx   # generate comprehensive test
   - CalcRange: for loop nested inside an if (table inside table cell)
   - FormatResult: logical AND (∧), string return
   - Main: drop cap entry point, multiple print calls, for loop with nested function calls
+- `Arrays.docx` — array features test (generated), outputs 1 3 5 15 30 20:
+  - 1D array literal via numbered list, drop cap + list assignment
+  - Array access via subscript (direct and in for loop)
+  - 2D array literal via nested numbered list
+  - Multidimensional array access via comma-separated subscript
 
 ## What's implemented
 
-Functions, multi-arg parameters, return (right-align), if/match/for, assignment (←), reassignment, unary negation, arithmetic (× ÷ − + %), exponentiation (superscript), logical (∨ ∧), comparison (= < > <= >= !=), formatting brackets (bold, highlight), multi-arg function calls (OCaml-style juxtaposition), font-based types and casting (per-token and expression-level), italic string literals, drop cap entry point (void return), print built-in, match wildcards (_), comma-separated match patterns, nested control flow in tables (if inside for, for inside if), programmatic .docx generation for tests, Roslyn compilation. No dynamic types — all variables must have explicit type fonts.
+Functions, multi-arg parameters, return (right-align), if/match/for, assignment (←), reassignment, unary negation, arithmetic (× ÷ − + %), exponentiation (superscript), logical (∨ ∧), comparison (= < > <= >= !=), formatting brackets (bold, highlight), multi-arg function calls (OCaml-style juxtaposition), font-based types and casting (per-token and expression-level), italic string literals, drop cap entry point (void return), print built-in, match wildcards (_), comma-separated match patterns, nested control flow in tables (if inside for, for inside if), arrays (1D and 2D literals via numbered lists, subscript array access, multidimensional subscript with comma separation), programmatic .docx generation for tests, Roslyn compilation. No dynamic types — all variables must have explicit type fonts.
 
 ## Documentation site
 
@@ -130,7 +145,6 @@ Functions, multi-arg parameters, return (right-align), if/match/for, assignment 
 
 ## Not yet implemented (discussed and specced)
 
-- **Subscript** → array/index access
 - **Footnotes** → error handling (try/catch — footnote ref = try site, footnote body = catch)
 - **Endnotes** → deferred execution (like Go's `defer` or `finally`)
 - **Track changes** → mutation (variables immutable by default, track changes required to reassign)
@@ -144,7 +158,7 @@ Functions, multi-arg parameters, return (right-align), if/match/for, assignment 
 - **Line spacing** → sleep/delay (double-spaced = 2x delay, intentionally useless)
 - **Small caps** → constants (compile-time)
 - **Table of Contents** → export list (functions in ToC = public, others = private)
-- **Lists** (bulleted/numbered) → data structure definitions
+- **Bulleted lists** → other data structures (numbered lists are now used for array literals)
 - **Equation editor** → complex math expressions (deferred — hard to implement)
 - **Font size as numeric literals** → the font size IS the number (not yet used, text content used instead)
 - **Hyperlinks** → alternative function call syntax (URL = function name, display text = args)

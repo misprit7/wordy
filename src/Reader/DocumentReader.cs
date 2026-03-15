@@ -23,21 +23,72 @@ public static class DocumentReader
             ?? throw new InvalidOperationException("Document has no body");
 
         var elements = new List<DocumentElement>();
+        var pendingListItems = new List<ListItemElement>();
+        int? currentNumId = null;
 
         foreach (var element in body.ChildElements)
         {
             switch (element)
             {
+                case Paragraph p when IsListParagraph(p):
+                    var numId = GetListNumId(p);
+                    if (currentNumId is not null && numId != currentNumId)
+                    {
+                        // Different list — flush previous
+                        elements.Add(new ListElement(pendingListItems));
+                        pendingListItems = new List<ListItemElement>();
+                    }
+                    currentNumId = numId;
+                    var ilvl = GetListIndentLevel(p);
+                    var listRuns = new List<RunElement>();
+                    foreach (var run in p.Elements<Run>())
+                        listRuns.Add(ReadRun(run));
+                    pendingListItems.Add(new ListItemElement(ilvl, listRuns));
+                    break;
                 case Paragraph p:
+                    if (pendingListItems.Count > 0)
+                    {
+                        elements.Add(new ListElement(pendingListItems));
+                        pendingListItems = new List<ListItemElement>();
+                        currentNumId = null;
+                    }
                     elements.Add(ReadParagraph(p));
                     break;
                 case Table t:
+                    if (pendingListItems.Count > 0)
+                    {
+                        elements.Add(new ListElement(pendingListItems));
+                        pendingListItems = new List<ListItemElement>();
+                        currentNumId = null;
+                    }
                     elements.Add(ReadTable(t));
                     break;
             }
         }
 
+        if (pendingListItems.Count > 0)
+            elements.Add(new ListElement(pendingListItems));
+
         return new DocumentIR(elements);
+    }
+
+    private static bool IsListParagraph(Paragraph p)
+    {
+        return p.ParagraphProperties?.NumberingProperties?
+            .GetFirstChild<NumberingId>()?.Val?.Value is not null;
+    }
+
+    private static int GetListNumId(Paragraph p)
+    {
+        return p.ParagraphProperties!.NumberingProperties!
+            .GetFirstChild<NumberingId>()!.Val!.Value;
+    }
+
+    private static int GetListIndentLevel(Paragraph p)
+    {
+        var ilvl = p.ParagraphProperties?.NumberingProperties?
+            .GetFirstChild<NumberingLevelReference>()?.Val?.Value;
+        return ilvl ?? 0;
     }
 
     private static ParagraphElement ReadParagraph(Paragraph p)

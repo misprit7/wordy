@@ -52,6 +52,26 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: width 0.2s ease, min-width 0.2s ease;
+  min-width: var(--sidebar-width);
+}
+
+.sidebar.collapsed {
+  width: 0;
+  min-width: 0;
+  border-right: none;
+}
+
+.sidebar.collapsed > * {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sidebar { width: 0; min-width: 0; border-right: none; }
+  .sidebar > * { display: none; }
+  .sidebar.expanded { width: var(--sidebar-width); min-width: var(--sidebar-width); border-right: 1px solid var(--ribbon-border); }
+  .sidebar.expanded > * { display: flex; }
+  .sidebar.expanded > .sidebar-nav { display: block; }
 }
 
 .sidebar-header {
@@ -66,6 +86,17 @@ body {
 }
 
 .sidebar-header-title { display: flex; align-items: center; gap: 6px; }
+
+.sidebar-close {
+  font-size: 10px;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+.sidebar-close:hover { background: rgba(0,0,0,0.08); color: var(--text); }
 
 .sidebar-tabs {
   display: flex;
@@ -601,10 +632,10 @@ li { margin-bottom: 4px; }
 <div class="main-container">
 
   <!-- Sidebar / Navigation Pane -->
-  <div class="sidebar">
+  <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <span class="sidebar-header-title">&#128196; Navigation</span>
-      <span style="font-size:10px;color:var(--text-muted);">&#10005;</span>
+      <button class="sidebar-close" onclick="toggleSidebar()" title="Close navigation">&#10005;</button>
     </div>
     <div class="sidebar-tabs">
       <button class="sidebar-tab active">Headings</button>
@@ -1311,6 +1342,22 @@ result <span class="op">&larr;</span> result <span class="op">&times;</span> n  
 </div>
 
 <script>
+// Sidebar toggle
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const isNarrow = window.matchMedia('(max-width: 768px)').matches;
+  if (isNarrow) {
+    sidebar.classList.toggle('expanded');
+  } else {
+    sidebar.classList.toggle('collapsed');
+  }
+}
+
+// Auto-collapse on narrow screens
+if (window.matchMedia('(max-width: 768px)').matches) {
+  // Already collapsed via CSS, no class needed
+}
+
 // Navigation
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => {

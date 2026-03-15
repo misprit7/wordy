@@ -67,6 +67,13 @@
                 console.error('[docx-preview] render error:', err);
             }
         };
+
+        window.toggleDocsNav = function () {
+            var iframe = document.querySelector('.docs-frame');
+            if (iframe && iframe.contentWindow && iframe.contentWindow.toggleSidebar) {
+                iframe.contentWindow.toggleSidebar();
+            }
+        };
     </script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>

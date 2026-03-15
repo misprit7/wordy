@@ -41,6 +41,18 @@ public static class DumpIR
                     }
                 }
                 break;
+            case ListElement list:
+                Console.WriteLine($"{prefix}List [{list.Items.Count} items]");
+                for (int i = 0; i < list.Items.Count; i++)
+                {
+                    var item = list.Items[i];
+                    Console.WriteLine($"{prefix}  Item {i} [indent={item.IndentLevel}]");
+                    foreach (var run in item.Runs)
+                    {
+                        Console.WriteLine($"{prefix}    Run: \"{run.Text}\" [font={run.FontName}, bold={run.Bold}, italic={run.Italic}, sub={run.Subscript}]");
+                    }
+                }
+                break;
         }
     }
 }

@@ -14,6 +14,9 @@ if (args.Length >= 2 && args[0] == "--gen")
         case "comprehensive":
             Wordy.Debug.DocxGenerator.GenerateComprehensive(outPath);
             return 0;
+        case "arrays":
+            Wordy.Debug.DocxGenerator.GenerateArrays(outPath);
+            return 0;
         default:
             Console.Error.WriteLine($"Unknown generator: {args[1]}");
             return 1;

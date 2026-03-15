@@ -77,6 +77,10 @@ public static class Parser
             if (elements[index] is ParagraphElement p && (IsHeading(p) || p.IsDropCap))
                 break;
 
+            // Look-ahead: assignment paragraph + list = array assignment
+            if (TryParseArrayAssignment(elements, ref index, body))
+                continue;
+
             var stmt = ParseElement(elements[index]);
             if (stmt is not null)
                 body.Add(stmt);
@@ -150,15 +154,39 @@ public static class Parser
         // Build a synthetic paragraph from the merged runs and parse it as a statement
         var mergedPara = new ParagraphElement(
             dropCapPara.Style, dropCapPara.Alignment, false, mergedRuns);
-        var firstStmt = ParseParagraphStmt(mergedPara);
-        if (firstStmt is not null)
-            body.Add(firstStmt);
+
+        // Check if the merged paragraph is a dangling assignment (ends with ←)
+        // and the next element is a list (array literal)
+        var mergedText = GetText(mergedPara).Trim();
+        if (mergedText.EndsWith('←') && index < elements.Count && elements[index] is ListElement dropCapList)
+        {
+            var varName = mergedText.TrimEnd('←').Trim().ToLowerInvariant();
+            if (!string.IsNullOrEmpty(varName))
+            {
+                var arrayExpr = ParseArrayLiteral(dropCapList);
+                if (arrayExpr is not null)
+                {
+                    body.Add(new AssignStmt(varName, arrayExpr));
+                    index++;
+                }
+            }
+        }
+        else
+        {
+            var firstStmt = ParseParagraphStmt(mergedPara);
+            if (firstStmt is not null)
+                body.Add(firstStmt);
+        }
 
         // Continue collecting body elements
         while (index < elements.Count)
         {
             if (elements[index] is ParagraphElement p && (IsHeading(p) || p.IsDropCap))
                 break;
+
+            // Look-ahead: assignment paragraph + list = array assignment
+            if (TryParseArrayAssignment(elements, ref index, body))
+                continue;
 
             var stmt = ParseElement(elements[index]);
             if (stmt is not null)
@@ -196,8 +224,16 @@ public static class Parser
         {
             ParagraphElement para => ParseParagraphStmt(para),
             TableElement table => ParseTableStmt(table),
+            ListElement list => ParseListElement(list),
             _ => null
         };
+    }
+
+    private static Stmt? ParseListElement(ListElement list)
+    {
+        // A standalone list = array literal expression statement
+        var expr = ParseArrayLiteral(list);
+        return expr is not null ? new ExprStmt(expr) : null;
     }
 
     private static Stmt? ParseParagraphStmt(ParagraphElement para)
@@ -540,7 +576,7 @@ public static class Parser
         _ => expr
     };
 
-    private record Token(TokenKind Kind, string Value, FormattingState Fmt, WordyType? FontType, string OriginalText, bool IsSuperscript = false);
+    private record Token(TokenKind Kind, string Value, FormattingState Fmt, WordyType? FontType, string OriginalText, bool IsSuperscript = false, bool IsSubscript = false);
 
     private enum TokenKind
     {
@@ -576,7 +612,7 @@ public static class Parser
     {
         // Step 1: Split runs into individual word/operator tokens with formatting + font type
         // HadSpace tracks whether whitespace preceded this token (to prevent merging across word boundaries)
-        var rawTokens = new List<(string Text, FormattingState Fmt, bool IsOperator, WordyType? FontType, bool IsItalic, bool IsSuperscript, bool HadSpace)>();
+        var rawTokens = new List<(string Text, FormattingState Fmt, bool IsOperator, WordyType? FontType, bool IsItalic, bool IsSuperscript, bool IsSubscript, bool HadSpace)>();
 
         var nextRunHadSpace = true; // first token always counts as preceded by space
         foreach (var run in runs)
@@ -585,13 +621,14 @@ public static class Parser
             var fontType = FontToType(run.FontName);
             var isItalic = run.Italic;
             var isSuperscript = run.Superscript;
+            var isSubscript = run.Subscript;
             var text = run.Text;
 
             if (isItalic)
             {
                 var trimmed = text.Trim();
                 if (!string.IsNullOrEmpty(trimmed))
-                    rawTokens.Add((trimmed, fmt, false, fontType, true, isSuperscript, true));
+                    rawTokens.Add((trimmed, fmt, false, fontType, true, isSuperscript, isSubscript, true));
                 nextRunHadSpace = true;
             }
             else
@@ -609,15 +646,22 @@ public static class Parser
                     if (IsOperatorChar(text[i]))
                     {
                         var op = ExtractOperator(text, ref i);
-                        rawTokens.Add((op, fmt, true, fontType, false, isSuperscript, true));
+                        rawTokens.Add((op, fmt, true, fontType, false, isSuperscript, isSubscript, true));
+                    }
+                    else if (isSubscript && text[i] == ',')
+                    {
+                        // Comma in subscript = multidimensional index separator
+                        i++;
+                        rawTokens.Add((",", fmt, false, fontType, false, false, isSubscript, true));
                     }
                     else
                     {
                         var start = i;
-                        while (i < text.Length && !char.IsWhiteSpace(text[i]) && !IsOperatorChar(text[i]))
+                        while (i < text.Length && !char.IsWhiteSpace(text[i]) && !IsOperatorChar(text[i])
+                               && !(isSubscript && text[i] == ','))
                             i++;
                         var word = text.Substring(start, i - start);
-                        rawTokens.Add((word, fmt, false, fontType, false, isSuperscript, precededBySpace));
+                        rawTokens.Add((word, fmt, false, fontType, false, isSuperscript, isSubscript, precededBySpace));
                     }
                     isFirstToken = false;
                 }
@@ -640,9 +684,10 @@ public static class Parser
                 && !prev.IsItalic && !curr.IsItalic
                 && prev.Fmt.Flags == curr.Fmt.Flags && prev.FontType == curr.FontType
                 && prev.IsSuperscript == curr.IsSuperscript
+                && prev.IsSubscript == curr.IsSubscript
                 && !double.TryParse(prev.Text, out _) && !double.TryParse(curr.Text, out _))
             {
-                rawTokens[i - 1] = (prev.Text + curr.Text, prev.Fmt, false, prev.FontType, false, prev.IsSuperscript, prev.HadSpace);
+                rawTokens[i - 1] = (prev.Text + curr.Text, prev.Fmt, false, prev.FontType, false, prev.IsSuperscript, prev.IsSubscript, prev.HadSpace);
                 rawTokens.RemoveAt(i);
             }
         }
@@ -652,7 +697,7 @@ public static class Parser
         var fmtStack = new List<FormattingFlags>();
         var currentFmt = FormattingFlags.None;
 
-        foreach (var (text, fmt, isOp, fontType, isItalic, isSuperscript, _) in rawTokens)
+        foreach (var (text, fmt, isOp, fontType, isItalic, isSuperscript, isSubscript, _) in rawTokens)
         {
             var newFmt = fmt.Flags;
 
@@ -691,19 +736,19 @@ public static class Parser
             // Italic text = string literal
             if (isItalic)
             {
-                tokens.Add(new Token(TokenKind.String, text, fmt, WordyType.String, text, isSuperscript));
+                tokens.Add(new Token(TokenKind.String, text, fmt, WordyType.String, text, isSuperscript, isSubscript));
             }
             else if (isOp)
             {
-                tokens.Add(new Token(TokenKind.Operator, text, fmt, fontType, text, isSuperscript));
+                tokens.Add(new Token(TokenKind.Operator, text, fmt, fontType, text, isSuperscript, isSubscript));
             }
-            else if (double.TryParse(text, out _))
+            else if (!text.Contains(',') && double.TryParse(text, out _))
             {
-                tokens.Add(new Token(TokenKind.Number, text, fmt, fontType, text, isSuperscript));
+                tokens.Add(new Token(TokenKind.Number, text, fmt, fontType, text, isSuperscript, isSubscript));
             }
             else
             {
-                tokens.Add(new Token(TokenKind.Identifier, text.ToLowerInvariant(), fmt, fontType, text, isSuperscript));
+                tokens.Add(new Token(TokenKind.Identifier, text.ToLowerInvariant(), fmt, fontType, text, isSuperscript, isSubscript));
             }
         }
 
@@ -881,7 +926,51 @@ public static class Parser
             var superPos = 0;
             var exponent = ParseLogicalOr(superTokens, ref superPos);
             if (exponent is not null)
-                return new ExponentExpr(baseExpr, exponent);
+                baseExpr = new ExponentExpr(baseExpr, exponent);
+        }
+
+        // If the next token(s) are subscript, they form an array index
+        while (pos < tokens.Count && tokens[pos].IsSubscript)
+        {
+            var subTokens = new List<Token>();
+            while (pos < tokens.Count && tokens[pos].IsSubscript)
+            {
+                subTokens.Add(tokens[pos]);
+                pos++;
+            }
+            // Check for comma-separated indices (multidimensional access)
+            var commaIndices = new List<int>();
+            for (int i = 0; i < subTokens.Count; i++)
+            {
+                if (subTokens[i].Kind == TokenKind.Identifier && subTokens[i].Value == ",")
+                    commaIndices.Add(i);
+            }
+            // Split subscript tokens on commas by checking for comma operators
+            // A simpler approach: parse the full subscript, then check if there are commas
+            // Actually, commas aren't operators in our tokenizer. Let's check raw text for commas.
+            // We need to handle "i,j" as two indices. The tokenizer won't split on commas,
+            // so we check if any token text contains a comma and split accordingly.
+            var indexGroups = SplitSubscriptOnCommas(subTokens);
+            if (indexGroups.Count == 1)
+            {
+                var subPos = 0;
+                var index = ParseLogicalOr(indexGroups[0], ref subPos);
+                if (index is not null)
+                    baseExpr = new ArrayAccessExpr(baseExpr, index);
+            }
+            else if (indexGroups.Count > 1)
+            {
+                var indices = new List<Expr>();
+                foreach (var group in indexGroups)
+                {
+                    var subPos = 0;
+                    var idx = ParseLogicalOr(group, ref subPos);
+                    if (idx is not null)
+                        indices.Add(idx);
+                }
+                if (indices.Count > 0)
+                    baseExpr = new MultiDimArrayAccessExpr(baseExpr, indices);
+            }
         }
 
         return baseExpr;
@@ -972,10 +1061,11 @@ public static class Parser
             var name = tokens[pos].Value;
             pos++;
 
-            // Check if this looks like a function call
+            // Check if this looks like a function call (not array access via subscript)
             if (pos < tokens.Count &&
                 tokens[pos].Kind != TokenKind.BracketClose &&
-                tokens[pos].Kind != TokenKind.Operator)
+                tokens[pos].Kind != TokenKind.Operator &&
+                !tokens[pos].IsSubscript)
             {
                 var args = new List<Expr>();
                 while (pos < tokens.Count && tokens[pos].Kind != TokenKind.BracketClose)
@@ -992,6 +1082,123 @@ public static class Parser
         }
 
         return ParseLogicalOr(tokens, ref pos);
+    }
+
+    // --- Subscript helpers ---
+
+    private static List<List<Token>> SplitSubscriptOnCommas(List<Token> tokens)
+    {
+        var groups = new List<List<Token>>();
+        var current = new List<Token>();
+
+        foreach (var token in tokens)
+        {
+            // Comma token = dimension separator
+            if (token.Kind == TokenKind.Identifier && token.Value == ",")
+            {
+                if (current.Count > 0)
+                    groups.Add(current);
+                current = new List<Token>();
+            }
+            // Check if this token's text contains a comma (tokenizer may keep "i,j" as one token)
+            else if (token.Kind == TokenKind.Identifier && token.Value.Contains(','))
+            {
+                var parts = token.Value.Split(',');
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    var part = parts[i].Trim();
+                    if (!string.IsNullOrEmpty(part))
+                        current.Add(token with { Value = part, OriginalText = part });
+                    if (i < parts.Length - 1)
+                    {
+                        if (current.Count > 0)
+                            groups.Add(current);
+                        current = new List<Token>();
+                    }
+                }
+            }
+            else
+            {
+                current.Add(token);
+            }
+        }
+
+        if (current.Count > 0)
+            groups.Add(current);
+
+        return groups;
+    }
+
+    /// <summary>
+    /// Look-ahead: if current element is a paragraph ending with ← and next element is a list,
+    /// parse as array assignment: variable ← [list]
+    /// </summary>
+    private static bool TryParseArrayAssignment(List<DocumentElement> elements, ref int index, List<Stmt> body)
+    {
+        if (elements[index] is not ParagraphElement assignPara) return false;
+        var text = GetText(assignPara).Trim();
+        if (!text.EndsWith('←')) return false;
+        if (index + 1 >= elements.Count) return false;
+        if (elements[index + 1] is not ListElement list) return false;
+
+        var varName = text.TrimEnd('←').Trim().ToLowerInvariant();
+        if (string.IsNullOrEmpty(varName)) return false;
+
+        var arrayExpr = ParseArrayLiteral(list);
+        if (arrayExpr is null) return false;
+
+        body.Add(new AssignStmt(varName, arrayExpr));
+        index += 2; // skip both paragraph and list
+        return true;
+    }
+
+    // --- Array literal parsing ---
+
+    private static Expr? ParseArrayLiteral(ListElement list)
+    {
+        bool hasSubItems = list.Items.Any(i => i.IndentLevel > 0);
+
+        if (!hasSubItems)
+        {
+            // 1D array
+            var elements = new List<Expr>();
+            WordyType? elementType = null;
+            foreach (var item in list.Items)
+            {
+                var expr = ParseExpression(item.Runs);
+                if (expr is not null) elements.Add(expr);
+                elementType ??= item.Runs
+                    .Where(r => !string.IsNullOrWhiteSpace(r.Text))
+                    .Select(r => FontToType(r.FontName))
+                    .FirstOrDefault(t => t is not null);
+            }
+            return new ArrayLiteralExpr(elementType ?? WordyType.Int, elements);
+        }
+        else
+        {
+            // 2D array: indent-0 items are row separators (blank), indent-1+ items are values
+            var rows = new List<List<Expr>>();
+            List<Expr>? currentRow = null;
+            WordyType? elementType = null;
+            foreach (var item in list.Items)
+            {
+                if (item.IndentLevel == 0)
+                {
+                    currentRow = new List<Expr>();
+                    rows.Add(currentRow);
+                }
+                else if (currentRow is not null)
+                {
+                    var expr = ParseExpression(item.Runs);
+                    if (expr is not null) currentRow.Add(expr);
+                    elementType ??= item.Runs
+                        .Where(r => !string.IsNullOrWhiteSpace(r.Text))
+                        .Select(r => FontToType(r.FontName))
+                        .FirstOrDefault(t => t is not null);
+                }
+            }
+            return new ArrayLiteral2DExpr(elementType ?? WordyType.Int, rows);
+        }
     }
 
     // --- Utilities ---

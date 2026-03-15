@@ -74,6 +74,15 @@
         }
         else
         {
+            <!-- Navigation toggle -->
+            <div class="ribbon-group" style="padding:4px 8px;">
+                <div class="ribbon-group-content">
+                    <button class="ribbon-btn" @onclick="ToggleDocsNav" title="Toggle navigation pane">
+                        <span class="ribbon-btn-icon">&#9776;</span>
+                        <span>Nav</span>
+                    </button>
+                </div>
+            </div>
             <!-- Word-style formatting ribbon (decorative) -->
             <div class="ribbon-group">
                 <div class="ribbon-group-content">
@@ -294,4 +303,10 @@
         isCompiling = false;
         statusText = result.Success ? "Compiled and executed successfully" : "Compilation failed";
     }
+
+    private async Task ToggleDocsNav()
+    {
+        await JS.InvokeVoidAsync("toggleDocsNav");
+    }
+
 }

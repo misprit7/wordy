@@ -37,3 +37,12 @@ public record TableCellElement(
     int GridSpan,
     List<DocumentElement> Content
 );
+
+public record ListElement(
+    List<ListItemElement> Items
+) : DocumentElement;
+
+public record ListItemElement(
+    int IndentLevel,
+    List<RunElement> Runs
+);

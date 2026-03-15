@@ -44,6 +44,8 @@ public static class DocxGenerator
     {
         using var doc = CreateDoc(path);
         var body = doc.MainDocumentPart!.Document!.Body!;
+        var numPart = doc.MainDocumentPart!.AddNewPart<NumberingDefinitionsPart>();
+        numPart.Numbering = MakeNumberingDefinitions();
 
         // ── Function 1: Abs(N: int) → int ──
         // Tests: if statement, comparison (<), unary negation (−N), return
@@ -234,9 +236,229 @@ public static class DocxGenerator
             }
         ));
 
+        // ── Array tests ──
+        // 1D array literal via numbered list: Primes ← [2, 3, 5, 7, 11]
+        body.Append(MakeParagraph(R("Primes ←")));
+        body.Append(MakeListParagraph(numId: 1, ilvl: 0, R("2", font: "Courier New")));
+        body.Append(MakeListParagraph(numId: 1, ilvl: 0, R("3", font: "Courier New")));
+        body.Append(MakeListParagraph(numId: 1, ilvl: 0, R("5", font: "Courier New")));
+        body.Append(MakeListParagraph(numId: 1, ilvl: 0, R("7", font: "Courier New")));
+        body.Append(MakeListParagraph(numId: 1, ilvl: 0, R("11", font: "Courier New")));
+
+        // Print primes[0] → 2, primes[4] → 11 (subscript array access)
+        body.Append(MakePrintParagraph(new[] {
+            R("Primes", bold: true), R("0", bold: true, subscript: true),
+        }));
+        body.Append(MakePrintParagraph(new[] {
+            R("Primes", bold: true), R("4", bold: true, subscript: true),
+        }));
+
+        // Sum array elements with a for loop using subscript access
+        body.Append(MakeParagraph(R("Arrsum ← 0")));
+        body.Append(MakeForTable(
+            init: new[] { R("I ← 0") },
+            condition: new[] { R("I < 5") },
+            step: new[] { R("I ← I + 1") },
+            bodyParagraphs: new Run[][] {
+                new[] { R("Arrsum ← Arrsum + Primes"), R("I", subscript: true) },
+            }
+        ));
+        // Print sum → 28
+        body.Append(MakePrintParagraph(new[] { R("Arrsum", bold: true) }));
+
+        // 2D array literal via nested numbered list: Grid ← [[1, 2, 3], [4, 5, 6]]
+        body.Append(MakeParagraph(R("Grid ←")));
+        body.Append(MakeListParagraph(numId: 2, ilvl: 0));  // blank row separator
+        body.Append(MakeListParagraph(numId: 2, ilvl: 1, R("1")));
+        body.Append(MakeListParagraph(numId: 2, ilvl: 1, R("2")));
+        body.Append(MakeListParagraph(numId: 2, ilvl: 1, R("3")));
+        body.Append(MakeListParagraph(numId: 2, ilvl: 0));  // blank row separator
+        body.Append(MakeListParagraph(numId: 2, ilvl: 1, R("4")));
+        body.Append(MakeListParagraph(numId: 2, ilvl: 1, R("5")));
+        body.Append(MakeListParagraph(numId: 2, ilvl: 1, R("6")));
+
+        // Print grid[0,2] → 3, grid[1,1] → 5 (multidimensional subscript access)
+        body.Append(MakePrintParagraph(new[] {
+            R("Grid", bold: true), R("0,2", bold: true, subscript: true),
+        }));
+        body.Append(MakePrintParagraph(new[] {
+            R("Grid", bold: true), R("1,1", bold: true, subscript: true),
+        }));
+
         body.Append(new Paragraph());
         Save(doc);
         Console.WriteLine($"Generated: {path}");
+    }
+
+    public static void GenerateArrays(string path)
+    {
+        using var doc = CreateDoc(path);
+        var body = doc.MainDocumentPart!.Document!.Body!;
+        var numPart = doc.MainDocumentPart!.AddNewPart<NumberingDefinitionsPart>();
+        numPart.Numbering = MakeNumberingDefinitions();
+
+        // ── Entry point ──
+        // Create a 1D array via numbered list: nums ← [1, 2, 3, 4, 5]
+        AppendDropCapParagraph(body, R("N"), R("ums ←"));
+
+        // Numbered list items (1D array literal)
+        body.Append(MakeListParagraph(numId: 1, ilvl: 0, R("1", font: "Courier New")));
+        body.Append(MakeListParagraph(numId: 1, ilvl: 0, R("2", font: "Courier New")));
+        body.Append(MakeListParagraph(numId: 1, ilvl: 0, R("3", font: "Courier New")));
+        body.Append(MakeListParagraph(numId: 1, ilvl: 0, R("4", font: "Courier New")));
+        body.Append(MakeListParagraph(numId: 1, ilvl: 0, R("5", font: "Courier New")));
+
+        // Print nums[0] → 1 (subscript array access inside bold bracket for print arg)
+        body.Append(MakePrintParagraph(new[] {
+            R("nums", bold: true), R("0", bold: true, subscript: true),
+        }));
+
+        // Print nums[2] → 3
+        body.Append(MakePrintParagraph(new[] {
+            R("nums", bold: true), R("2", bold: true, subscript: true),
+        }));
+
+        // Print nums[4] → 5
+        body.Append(MakePrintParagraph(new[] {
+            R("nums", bold: true), R("4", bold: true, subscript: true),
+        }));
+
+        // Sum elements with a for loop
+        body.Append(MakeParagraph(R("Total ← 0")));
+        body.Append(MakeForTable(
+            init: new[] { R("I ← 0") },
+            condition: new[] { R("I < 5") },
+            step: new[] { R("I ← I + 1") },
+            bodyParagraphs: new Run[][] {
+                new[] { R("Total ← Total + Nums"), R("I", subscript: true) },
+            }
+        ));
+        // Print total → 15
+        body.Append(MakePrintParagraph(new[] { R("Total", bold: true) }));
+
+        // Create a 2D array via nested list: matrix ←
+        body.Append(MakeParagraph(R("Matrix ←")));
+        // Row 0: [10, 20]
+        body.Append(MakeListParagraph(numId: 2, ilvl: 0));  // blank top-level
+        body.Append(MakeListParagraph(numId: 2, ilvl: 1, R("10")));
+        body.Append(MakeListParagraph(numId: 2, ilvl: 1, R("20")));
+        // Row 1: [30, 40]
+        body.Append(MakeListParagraph(numId: 2, ilvl: 0));  // blank top-level
+        body.Append(MakeListParagraph(numId: 2, ilvl: 1, R("30")));
+        body.Append(MakeListParagraph(numId: 2, ilvl: 1, R("40")));
+
+        // Print matrix[1,0] → 30
+        body.Append(MakePrintParagraph(new[] {
+            R("Matrix", bold: true), R("1,0", bold: true, subscript: true),
+        }));
+
+        // Print matrix[0,1] → 20
+        body.Append(MakePrintParagraph(new[] {
+            R("Matrix", bold: true), R("0,1", bold: true, subscript: true),
+        }));
+
+        body.Append(new Paragraph());
+        Save(doc);
+        Console.WriteLine($"Generated: {path}");
+    }
+
+    // ── List / Numbering helpers ──
+
+    private static Numbering MakeNumberingDefinitions()
+    {
+        var numbering = new Numbering();
+
+        // Word uses hybridMultilevel with full 9-level definitions and proper indentation
+        for (int absId = 1; absId <= 2; absId++)
+        {
+            var absNum = new AbstractNum { AbstractNumberId = absId };
+            absNum.Append(new MultiLevelType { Val = MultiLevelValues.HybridMultilevel });
+
+            // Standard Word indentation: ilvl 0 = 720/360, ilvl 1 = 1440/360, etc.
+            var formats = new[] {
+                NumberFormatValues.Decimal, NumberFormatValues.LowerLetter,
+                NumberFormatValues.LowerRoman, NumberFormatValues.Decimal,
+                NumberFormatValues.LowerLetter, NumberFormatValues.LowerRoman,
+                NumberFormatValues.Decimal, NumberFormatValues.LowerLetter,
+                NumberFormatValues.LowerRoman
+            };
+            var lvlTexts = new[] { "%1.", "%2.", "%3.", "%4.", "%5.", "%6.", "%7.", "%8.", "%9." };
+            var justifications = new[] {
+                LevelJustificationValues.Left, LevelJustificationValues.Left,
+                LevelJustificationValues.Right, LevelJustificationValues.Left,
+                LevelJustificationValues.Left, LevelJustificationValues.Right,
+                LevelJustificationValues.Left, LevelJustificationValues.Left,
+                LevelJustificationValues.Right
+            };
+
+            for (int i = 0; i < 9; i++)
+            {
+                var hanging = (i % 3 == 2) ? "180" : "360";
+                var left = (720 + i * 720).ToString();
+                var level = new Level(
+                    new StartNumberingValue { Val = 1 },
+                    new NumberingFormat { Val = formats[i] },
+                    new LevelText { Val = lvlTexts[i] },
+                    new LevelJustification { Val = justifications[i] },
+                    new ParagraphProperties(
+                        new Indentation { Left = left, Hanging = hanging }
+                    )
+                ) { LevelIndex = i };
+                absNum.Append(level);
+            }
+
+            numbering.Append(absNum);
+        }
+
+        // Numbering instances referencing the abstract definitions
+        numbering.Append(new NumberingInstance(
+            new AbstractNumId { Val = 1 }
+        ) { NumberID = 1 });
+        numbering.Append(new NumberingInstance(
+            new AbstractNumId { Val = 2 }
+        ) { NumberID = 2 });
+
+        return numbering;
+    }
+
+    private static Paragraph MakeListParagraph(int numId, int ilvl, params Run[] runs)
+    {
+        var para = new Paragraph();
+        var pProps = new ParagraphProperties(
+            new ParagraphStyleId { Val = "ListParagraph" },
+            new NumberingProperties(
+                new NumberingLevelReference { Val = ilvl },
+                new NumberingId { Val = numId }
+            )
+        );
+        para.Append(pProps);
+        foreach (var run in runs)
+            para.Append(run);
+        return para;
+    }
+
+    /// <summary>
+    /// Appends a drop cap initial letter + continuation paragraph (non-print version).
+    /// </summary>
+    private static void AppendDropCapParagraph(Body body, Run initialRun, Run continuationRun)
+    {
+        var dropCapPara = new Paragraph();
+        dropCapPara.Append(new ParagraphProperties(new FrameProperties
+        {
+            DropCap = DropCapLocationValues.Margin,
+            Lines = 3,
+            Wrap = TextWrappingValues.Around,
+            VerticalPosition = VerticalAnchorValues.Text,
+            HorizontalPosition = HorizontalAnchorValues.Page
+        }));
+        initialRun.RunProperties ??= new RunProperties();
+        initialRun.RunProperties.Append(new FontSize { Val = "174" });
+        dropCapPara.Append(initialRun);
+        body.Append(dropCapPara);
+
+        var contPara = new Paragraph();
+        contPara.Append(continuationRun);
+        body.Append(contPara);
     }
 
     // ── Document helpers ──
@@ -258,9 +480,10 @@ public static class DocxGenerator
 
     private static Run R(string text, string? font = null,
         bool bold = false, bool italic = false,
-        HighlightColorValues? highlight = null, bool superscript = false)
+        HighlightColorValues? highlight = null, bool superscript = false,
+        bool subscript = false)
     {
-        return MakeRun(text, font ?? "Cambria Math", bold, italic, highlight, superscript);
+        return MakeRun(text, font ?? "Cambria Math", bold, italic, highlight, superscript, subscript);
     }
 
     // ── Paragraph builders ──
@@ -571,7 +794,8 @@ public static class DocxGenerator
 
     private static Run MakeRun(string text, string? font = null,
         bool bold = false, bool italic = false,
-        HighlightColorValues? highlight = null, bool superscript = false)
+        HighlightColorValues? highlight = null, bool superscript = false,
+        bool subscript = false)
     {
         var run = new Run();
         var props = new RunProperties();
@@ -586,6 +810,8 @@ public static class DocxGenerator
             props.Append(new Highlight { Val = highlight });
         if (superscript)
             props.Append(new VerticalTextAlignment { Val = VerticalPositionValues.Superscript });
+        if (subscript)
+            props.Append(new VerticalTextAlignment { Val = VerticalPositionValues.Subscript });
 
         run.Append(props);
         run.Append(new Text(text) { Space = SpaceProcessingModeValues.Preserve });

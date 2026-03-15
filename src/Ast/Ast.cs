@@ -32,6 +32,12 @@ public record CallExpr(string FunctionName, List<Expr> Arguments) : Expr;
 
 public record ArrayAccessExpr(Expr Array, Expr Index) : Expr;
 
+public record MultiDimArrayAccessExpr(Expr Array, List<Expr> Indices) : Expr;
+
+public record ArrayLiteralExpr(WordyType ElementType, List<Expr> Elements) : Expr;
+
+public record ArrayLiteral2DExpr(WordyType ElementType, List<List<Expr>> Rows) : Expr;
+
 public record ExponentExpr(Expr Base, Expr Exponent) : Expr;
 
 public record CastExpr(Expr Value, WordyType TargetType) : Expr;

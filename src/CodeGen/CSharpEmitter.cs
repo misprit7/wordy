@@ -271,6 +271,40 @@ public static class CSharpEmitter
                 EmitExpr(sb, acc.Index);
                 sb.Append(']');
                 break;
+            case MultiDimArrayAccessExpr macc:
+                EmitExpr(sb, macc.Array);
+                sb.Append('[');
+                for (int i = 0; i < macc.Indices.Count; i++)
+                {
+                    if (i > 0) sb.Append(", ");
+                    EmitExpr(sb, macc.Indices[i]);
+                }
+                sb.Append(']');
+                break;
+            case ArrayLiteralExpr arr:
+                sb.Append($"new {TypeToCSharp(arr.ElementType)}[] {{");
+                for (int i = 0; i < arr.Elements.Count; i++)
+                {
+                    if (i > 0) sb.Append(", ");
+                    EmitExpr(sb, arr.Elements[i]);
+                }
+                sb.Append('}');
+                break;
+            case ArrayLiteral2DExpr arr2d:
+                sb.Append($"new {TypeToCSharp(arr2d.ElementType)}[,] {{");
+                for (int r = 0; r < arr2d.Rows.Count; r++)
+                {
+                    if (r > 0) sb.Append(", ");
+                    sb.Append('{');
+                    for (int c = 0; c < arr2d.Rows[r].Count; c++)
+                    {
+                        if (c > 0) sb.Append(", ");
+                        EmitExpr(sb, arr2d.Rows[r][c]);
+                    }
+                    sb.Append('}');
+                }
+                sb.Append('}');
+                break;
             case ExponentExpr exp:
                 sb.Append("(int)Math.Pow(");
                 EmitExpr(sb, exp.Base);
