@@ -575,8 +575,10 @@ public static class Parser
     private static List<Token> Tokenize(List<RunElement> runs)
     {
         // Step 1: Split runs into individual word/operator tokens with formatting + font type
-        var rawTokens = new List<(string Text, FormattingState Fmt, bool IsOperator, WordyType? FontType, bool IsItalic, bool IsSuperscript)>();
+        // HadSpace tracks whether whitespace preceded this token (to prevent merging across word boundaries)
+        var rawTokens = new List<(string Text, FormattingState Fmt, bool IsOperator, WordyType? FontType, bool IsItalic, bool IsSuperscript, bool HadSpace)>();
 
+        var nextRunHadSpace = true; // first token always counts as preceded by space
         foreach (var run in runs)
         {
             var fmt = FormattingState.FromRun(run);
@@ -589,20 +591,25 @@ public static class Parser
             {
                 var trimmed = text.Trim();
                 if (!string.IsNullOrEmpty(trimmed))
-                    rawTokens.Add((trimmed, fmt, false, fontType, true, isSuperscript));
+                    rawTokens.Add((trimmed, fmt, false, fontType, true, isSuperscript, true));
+                nextRunHadSpace = true;
             }
             else
             {
                 var i = 0;
+                var isFirstToken = true;
                 while (i < text.Length)
                 {
-                    while (i < text.Length && char.IsWhiteSpace(text[i])) i++;
-                    if (i >= text.Length) break;
+                    var hadSpace = false;
+                    while (i < text.Length && char.IsWhiteSpace(text[i])) { i++; hadSpace = true; }
+                    if (i >= text.Length) { nextRunHadSpace = true; break; }
+                    // First token: use hadSpace OR carried-over space from previous run
+                    var precededBySpace = hadSpace || (isFirstToken ? nextRunHadSpace : false);
 
                     if (IsOperatorChar(text[i]))
                     {
                         var op = ExtractOperator(text, ref i);
-                        rawTokens.Add((op, fmt, true, fontType, false, isSuperscript));
+                        rawTokens.Add((op, fmt, true, fontType, false, isSuperscript, true));
                     }
                     else
                     {
@@ -610,9 +617,33 @@ public static class Parser
                         while (i < text.Length && !char.IsWhiteSpace(text[i]) && !IsOperatorChar(text[i]))
                             i++;
                         var word = text.Substring(start, i - start);
-                        rawTokens.Add((word, fmt, false, fontType, false, isSuperscript));
+                        rawTokens.Add((word, fmt, false, fontType, false, isSuperscript, precededBySpace));
                     }
+                    isFirstToken = false;
                 }
+                // If run ended with whitespace or was empty, next run starts a new word
+                if (isFirstToken)
+                    nextRunHadSpace = text.Length > 0 && text.All(char.IsWhiteSpace) ? true : nextRunHadSpace;
+                else
+                    nextRunHadSpace = text.Length > 0 && char.IsWhiteSpace(text[^1]);
+            }
+        }
+
+        // Step 1.5: Merge adjacent word fragments split across runs with same formatting.
+        // Word sometimes splits a single word like "number" across multiple runs (e.g. "nu"+"m"+"ber").
+        // Only merge when the second token had no preceding whitespace (i.e. it continues the same word).
+        for (int i = rawTokens.Count - 1; i > 0; i--)
+        {
+            var prev = rawTokens[i - 1];
+            var curr = rawTokens[i];
+            if (!curr.HadSpace && !prev.IsOperator && !curr.IsOperator
+                && !prev.IsItalic && !curr.IsItalic
+                && prev.Fmt.Flags == curr.Fmt.Flags && prev.FontType == curr.FontType
+                && prev.IsSuperscript == curr.IsSuperscript
+                && !double.TryParse(prev.Text, out _) && !double.TryParse(curr.Text, out _))
+            {
+                rawTokens[i - 1] = (prev.Text + curr.Text, prev.Fmt, false, prev.FontType, false, prev.IsSuperscript, prev.HadSpace);
+                rawTokens.RemoveAt(i);
             }
         }
 
@@ -621,7 +652,7 @@ public static class Parser
         var fmtStack = new List<FormattingFlags>();
         var currentFmt = FormattingFlags.None;
 
-        foreach (var (text, fmt, isOp, fontType, isItalic, isSuperscript) in rawTokens)
+        foreach (var (text, fmt, isOp, fontType, isItalic, isSuperscript, _) in rawTokens)
         {
             var newFmt = fmt.Flags;
 
