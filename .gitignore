@@ -29,6 +29,8 @@ x86/
 [Aa][Rr][Mm]64/
 bld/
 [Bb]in/
+!bin/
+bin/*
 !bin/cli/
 [Oo]bj/
 [Ll]og/
