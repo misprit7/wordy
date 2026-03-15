@@ -30,8 +30,8 @@ jobs:
 
       - name: Generate example programs
         run: |
-          dotnet run --project bin/cli -- --gen fibonacci docx/generated/Fibonacci.docx
-          dotnet run --project bin/cli -- --gen comprehensive docx/generated/Comprehensive.docx
+          dotnet run --project cli -- --gen fibonacci docx/generated/Fibonacci.docx
+          dotnet run --project cli -- --gen comprehensive docx/generated/Comprehensive.docx
           mkdir -p web/wwwroot/examples
           cp docx/manual/*.docx web/wwwroot/examples/
           cp docx/generated/*.docx web/wwwroot/examples/

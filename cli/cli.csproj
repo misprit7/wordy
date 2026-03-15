@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/wordy.csproj" />
+    <ProjectReference Include="../src/wordy.csproj" />
   </ItemGroup>
 
 </Project>
