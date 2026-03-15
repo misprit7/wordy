@@ -8,8 +8,6 @@ public enum WordyType
     Float,     // Script/cursive
     String,    // Times New Roman
     Bool,      // Comic Sans
-    Char,      // Symbol
-    Void,      // Wingdings
     Error,     // Impact
     Auto       // Calibri (inferred)
 }

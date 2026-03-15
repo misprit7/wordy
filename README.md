@@ -17,18 +17,40 @@ Wordy is the final iteration of language and IDE design. It combines the effecti
 
 # Setup
 
-This project is written in C#, not because I particular like the language but because of the [Open XML](https://learn.microsoft.com/en-us/office/open-xml/open-xml-sdk) library as well as being kind of fitting for an over the top Microsoft parody project. 
+The compiler is written in C# (.NET 8) using the [Open XML SDK](https://learn.microsoft.com/en-us/office/open-xml/open-xml-sdk) to parse `.docx` files and [Roslyn](https://github.com/dotnet/roslyn) to compile the generated C# at runtime.
 
-## Linux
+## Prerequisites
 
-Install [dotnet](https://wiki.archlinux.org/title/.NET)  on whatever distro you're running. Run the project with
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (or install via your package manager, e.g. [Arch](https://wiki.archlinux.org/title/.NET))
+
+## Usage
 
 ```bash
-cd compiler
-dotnet run
+cd src
+dotnet run -- <file.docx>           # compile and run
+dotnet run -- <file.docx> --emit    # print generated C# without running
+dotnet run -- <file.docx> --dump-ir # print the document's intermediate representation
+dotnet run -- <file.docx> --dump-raw # print raw OpenXML structure
 ```
 
-## Windows
+## Project Structure
 
-Why in the world would you want to run this project on Windows? Can't help you there. 
+```
+src/
+├── Program.cs              # CLI entry point
+├── Reader/
+│   ├── DocumentIR.cs       # Formatting-aware intermediate representation
+│   └── DocumentReader.cs   # .docx → IR using OpenXML
+├── Ast/
+│   ├── Ast.cs              # AST node definitions
+│   └── Parser.cs           # IR → AST (formatting brackets, tables, fonts)
+├── CodeGen/
+│   ├── CSharpEmitter.cs    # AST → C# source code
+│   └── Compiler.cs         # Roslyn compilation and execution
+└── Debug/
+    ├── DumpIR.cs            # IR debug printer
+    └── RawDump.cs           # Raw OpenXML debug printer
+```
+
+See [SPEC.md](SPEC.md) for the language specification and [docs/index.html](docs/index.html) for the full reference.
 

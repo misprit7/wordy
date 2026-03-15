@@ -296,11 +296,6 @@ public static class CSharpEmitter
                 EmitExpr(sb, cast.Value);
                 sb.Append(')');
                 break;
-            case WordyType.Char:
-                sb.Append("Convert.ToChar(");
-                EmitExpr(sb, cast.Value);
-                sb.Append(')');
-                break;
             default:
                 EmitExpr(sb, cast.Value);
                 break;
@@ -331,8 +326,6 @@ public static class CSharpEmitter
         WordyType.Float => "double",
         WordyType.String => "string",
         WordyType.Bool => "bool",
-        WordyType.Char => "char",
-        WordyType.Void => "void",
         WordyType.Error => "Exception",
         WordyType.Auto => "dynamic",
         _ => "dynamic"

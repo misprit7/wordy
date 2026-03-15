@@ -35,8 +35,6 @@ Types are determined by **font family**. Placing a value or variable in a type f
 | Courier New | int | Monospaced, precise, rigid — counting energy. |
 | Comic Sans | bool | You either love it or hate it. True or false. |
 | Script/cursive (e.g. Brush Script) | float | Cursive is fluid and imprecise, like floating point. |
-| Wingdings | void | The text is unreadable — it represents nothing. |
-| Symbol | char | Named "Symbol" — it's for individual symbols. |
 | Calibri | auto (inferred) | Word's default font. No formatting = compiler infers the type. |
 | Impact | error/exception | It's called Impact. Errors hit hard. |
 
