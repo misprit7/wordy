@@ -41,28 +41,38 @@ public class WordyCompiler
         if (_references != null) return;
 
         var refs = new List<MetadataReference>();
+        var errors = new List<string>();
+
         foreach (var name in LibraryNames)
         {
             try
             {
-                var stream = await _http.GetStreamAsync($"lib/{name}");
-                var ms = new MemoryStream();
-                await stream.CopyToAsync(ms);
-                ms.Position = 0;
-                refs.Add(MetadataReference.CreateFromStream(ms));
+                var bytes = await _http.GetByteArrayAsync($"lib/{name}");
+                refs.Add(MetadataReference.CreateFromImage(bytes));
             }
-            catch (HttpRequestException)
+            catch (Exception ex)
             {
-                // Skip missing libraries
+                errors.Add($"{name}: {ex.Message}");
             }
         }
+
+        if (refs.Count == 0)
+            throw new InvalidOperationException(
+                $"Failed to load any reference assemblies.\n{string.Join("\n", errors)}");
 
         _references = refs;
     }
 
     public async Task<CompilationResult> CompileAndRunAsync(Stream docxStream)
     {
-        await InitializeAsync();
+        try
+        {
+            await InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            return new CompilationResult(null, null, ex.Message, false);
+        }
 
         try
         {
@@ -91,10 +101,10 @@ public class WordyCompiler
 
             if (!result.Success)
             {
-                var errors = string.Join("\n", result.Diagnostics
+                var errs = string.Join("\n", result.Diagnostics
                     .Where(d => d.Severity == DiagnosticSeverity.Error)
                     .Select(d => d.ToString()));
-                return new CompilationResult(csharpSource, null, $"Compilation errors:\n{errors}", false);
+                return new CompilationResult(csharpSource, null, $"Compilation errors:\n{errs}", false);
             }
 
             // Phase 5: Execute
