@@ -1,37 +1,49 @@
 # Wordy
 
-An esoteric programming language where Microsoft Word `.docx` documents are the source code. All syntax is represented through document formatting — there are no keywords. The goal is to be fun and clever, not practical. The project may become a YouTube video.
+An esoteric programming language where Microsoft Word `.docx` documents are the source code. All syntax is represented through document formatting — there are no keywords. The goal is to be fun and clever, not practical.
 
-## Architecture
-
-The compiler pipeline is: `.docx` → DocumentIR → AST → C# source → Roslyn compilation → execution.
+## Project structure
 
 ```
-src/
-├── Program.cs              # CLI entry point with --emit, --dump-ir, --dump-raw, --gen flags
+wordy.sln
+src/                    Class library (Wordy.Core) — the compiler pipeline
 ├── Reader/
-│   ├── DocumentIR.cs       # Formatting-aware IR (paragraphs with runs, tables with cells)
-│   └── DocumentReader.cs   # .docx → IR using OpenXML SDK
+│   ├── DocumentIR.cs       # IR: paragraphs, runs, tables, lists, imports
+│   └── DocumentReader.cs   # .docx → IR (OpenXML SDK, bibliography, citations)
 ├── Ast/
-│   ├── Ast.cs              # AST node definitions (expressions, statements, functions)
-│   └── Parser.cs           # IR → AST: formatting brackets, table control flow, font types
+│   ├── Ast.cs              # AST nodes (expressions, statements, functions, imports)
+│   └── Parser.cs           # IR → AST: formatting brackets, tables, fonts, subscripts
 ├── CodeGen/
-│   ├── CSharpEmitter.cs    # AST → C# source code
-│   └── Compiler.cs         # Roslyn in-memory compilation and execution
+│   ├── CSharpEmitter.cs    # AST → C# source
+│   └── Compiler.cs         # Roslyn in-memory compilation + execution
+cli/                    Console app (references src/)
+├── Program.cs              # CLI entry point, multi-file import resolution
 └── Debug/
     ├── DumpIR.cs            # IR debug printer
     ├── RawDump.cs           # Raw OpenXML debug printer
     └── DocxGenerator.cs     # Programmatic .docx test file generator
+web/                    Blazor WASM app (references src/)
+├── Pages/Home.razor        # Compiler UI: upload, examples, multi-file, run
+├── Services/WordyCompiler.cs # Browser-side compile+run via Roslyn-in-WASM
+├── wwwroot/index.html      # Blazor host page
+├── wwwroot/css/app.css     # Word-themed UI styles
+├── wwwroot/docs/index.html # Docs site (also served standalone from docs/)
+└── wwwroot/examples/       # Auto-populated at build from docx/ (gitignored)
+docs/index.html         Standalone docs site (Word UI themed)
+docx/                   Single source of truth for .docx files
+├── manual/                 # Hand-authored (Factorial, FizzBuzz)
+└── generated/              # Programmatically generated (Comprehensive, Fibonacci, Arrays)
+old/                    Earlier abandoned attempt (~3 years ago). Ignore.
 ```
+
+The web project's MSBuild target `CopyDocxExamples` copies from `docx/manual/` and `docx/generated/` into `web/wwwroot/examples/` at build time. Never put example docx files directly in `web/wwwroot/examples/`.
 
 ## Language semantics
 
 ### Functions
-- **Headings** define functions. The heading text = function name, the heading font = return type.
-- **Subtitle** paragraph after the heading defines parameters (each run = one param, font = type).
-- Plain paragraphs with typed-font runs after a heading also work as parameter declarations.
-- **Drop cap** paragraph (Format → Drop Cap → In Margin) marks the entry point / main function.
-- The drop cap initial letter is stitched with the continuation paragraph to form the first statement.
+- **Headings** define functions. Heading text = function name, heading font = return type.
+- **Subtitle** or typed-font paragraph after heading = parameters (each run = one param, font = type).
+- **Drop cap** (Format → Drop Cap → In Margin) = entry point. The initial letter is stitched with the continuation paragraph.
 
 ### Types and casting
 Font family determines type. Putting a value/variable in a type font casts it.
@@ -43,23 +55,24 @@ Font family determines type. Putting a value/variable in a type font casts it.
 | Comic Sans MS | bool |
 | Script/cursive | float |
 | Symbol | char |
-Any non-reserved font (e.g. Calibri, Cambria Math) carries no type info — use it as neutral code text. Variables and parameters MUST use a type font; using a non-type font is a compilation error.
 
-Expression-level font casting: if ALL value tokens in an expression share the same type font, the entire expression result is cast (not individual tokens). E.g., `n % 2` all in Comic Sans → `Convert.ToBoolean(n % 2)`. The parser unwraps per-token casts and applies one expression-level cast.
+Non-reserved fonts (Calibri, Cambria Math) carry no type info — use as neutral code text. Cambria Math is recommended since it includes all required Unicode symbols.
 
-### String literals
-**Italic** text = string literal. The raw text content is the string value. Italic is NOT a bracket type.
+Expression-level font casting: if ALL value tokens share a single type font, the cast applies to the whole expression (not individual tokens). E.g., `n % 2` all in Comic Sans → `Convert.ToBoolean(n % 2)`.
+
+### Literals and text
+- **Italic** text = string literal. NOT a bracket type.
+- Numbers are written as text content.
 
 ### Brackets / grouping
-Formatting nesting represents parentheses. Applying a format opens a bracket, ending it closes.
+Formatting toggles represent parentheses. Applying a format opens `(`, ending it closes `)`.
 - **Bold** and **highlight color** are bracket types.
-- Nested formatting = nested brackets. Undoing outer formatting inside inner is invalid.
+- Nested formatting = nested brackets.
 
 ### Function calls
-- Identifier followed by a formatting bracket = function call. The bracket content = arguments.
-- Inside a bracket, **juxtaposition** (identifier followed by values without operators) = function call.
-- **Multi-argument**: OCaml-style, space-separated values inside a bracket. `max a b` = `max(a, b)`.
-- To pass a negated argument, wrap it in an inner bracket (e.g., highlight inside bold) to disambiguate from subtraction.
+- Identifier + formatting bracket = function call. Bracket content = arguments.
+- Inside a bracket, **juxtaposition** (identifier followed by values, no operators) = function call with multiple args. `max a b` = `max(a, b)`.
+- Negated arguments must be wrapped in an inner bracket to disambiguate from subtraction.
 
 ### Operators
 | Operator | Meaning |
@@ -74,136 +87,93 @@ Formatting nesting represents parentheses. Applying a format opens a bracket, en
 | `∧` (U+2227) | logical AND |
 | `∨` (U+2228) | logical OR |
 | `←` (U+2190) | assignment |
-| superscript | exponentiation (N² → `(int)Math.Pow(N, 2)`) |
+| superscript | exponentiation (N² → `Math.Pow(N, 2)`) |
 
-### Control flow — all via tables
-- **If statement**: table with 1 merged top cell (condition) + 2 cells below (true/false branches). This is syntactic sugar for a match on bool — if the condition is boolean, the left cell = true, right = false.
-- **Match statement**: 3-row table. Row 0 = merged subject cell, Row 1 = pattern cells, Row 2 = body cells. Patterns can be comma-separated (`3,6,9,12`). `_` = wildcard/default.
-- **For loop**: table with 3 cells in the top row (init | condition | step). Remaining rows = body. For loop init variables are hoisted before the for statement so they remain accessible after the loop.
-- **Nested control flow**: for loop body rows can form an if/match pattern (merged row + branch row). Tables can also be nested inside table cells (e.g., for loop inside an if branch).
+The parser accepts ASCII `-` as well as `−` (U+2212).
+
+### Control flow — tables
+- **If**: 1 merged top cell (condition) + 2 cells below (true/false branches).
+- **Match**: 3-row table — row 0 = merged subject, row 1 = patterns, row 2 = bodies. Comma-separated patterns (`3,6,9,12`), `_` = wildcard.
+- **For loop**: 3 cells in top row (init | condition | step), remaining rows = body. Init variables hoisted before the `for` so they're accessible after.
+- **Nested**: for body rows can form if/match patterns; tables can nest inside table cells.
 
 ### Arrays
-- **Numbered lists** = array literals. Each list item = one element. Element type determined by font of list items.
-  - 1D: flat numbered list → `new int[] {1, 2, 3}` (all items at indent level 0)
-  - 2D: nested numbered list → `new int[,] {{1, 2}, {3, 4}}` (blank top-level items as row separators, sub-items at indent level 1 as values)
-- **Subscript** = array access. `arr` with subscript `i` → `arr[i]`.
-  - Multidimensional: subscript `i,j` → `arr[i, j]` (comma-separated indices in subscript text).
-- Array assignment: `variable ←` paragraph followed by a numbered list = assign array literal to variable. Works with drop cap entry points too.
-- Inside formatting brackets, subscript after an identifier is parsed as array access, not as a function call argument.
+- **Numbered lists** = array literals. Font of items determines element type.
+  - 1D: flat list → `new int[] {1, 2, 3}`
+  - 2D: nested list (blank top-level items as row separators, indent-1 sub-items as values) → `new int[,] {{1, 2}, {3, 4}}`
+- **Subscript** = array access. `arr` with subscript `i` → `arr[i]`. Comma-separated subscript `i,j` → `arr[i, j]`.
+- Array assignment: `variable ←` paragraph followed by a numbered list.
+- Inside formatting brackets, subscript after an identifier = array access (not function call argument).
 
 ### Imports (Bibliography/Citations)
-- Word's **bibliography** system = imports. Each bibliography entry = one imported module.
-- **Title** field = filename of the .docx to import (without extension).
-- Use Word's **citation** feature (References → Insert Citation) to reference an imported function inline.
-- The citation's **page field** (`\p`) = the function name being called.
-- Citations are read as synthetic runs with the function name text, preserving formatting (highlight, bold, etc.) so they work inside formatting brackets for function calls with arguments.
-- Example: `print` [highlight] citation(`\p Factorial`) ` 5` [/highlight] → `Console.WriteLine(Factorial(5))`
-- The compiler resolves imports by looking for `.docx` files in the same directory as the main file.
-- Imports are resolved recursively (imported files can have their own imports).
-- The "Works Cited" SDT block at the end of the document is ignored by the parser.
+- Word's **bibliography** = imports. Each bibliography entry = one imported module.
+- **Title** field = filename of the `.docx` to import (without extension).
+- **Citations** (References → Insert Citation) reference imported functions inline. The `\p` (page) field = function name.
+- Citations become synthetic runs preserving formatting, so they work inside brackets for function calls with arguments.
+- The compiler resolves imports by looking for `.docx` files in the same directory. Resolution is recursive.
+- The "Works Cited" SDT block is ignored by the parser.
 
 ### Other syntax
 - **Right-aligned** text = return value.
-- **`print`** = built-in function (call like any function, emits `Console.WriteLine`).
-- **Case insensitive** — all identifiers lowercased internally, emitted as PascalCase.
-- **Whitespace insensitive** — newlines and spaces don't matter.
-- **Comments** = Word's comment feature (Insert → Comment). No inline comments.
-- **First occurrence** of a variable = declaration (emits `var`). Subsequent = reassignment.
+- **`print`** = built-in function (emits `Console.WriteLine`).
+- **Case insensitive** — identifiers lowercased internally, emitted as PascalCase.
+- **Whitespace insensitive**.
+- **Comments** = Word's comment feature (Insert → Comment).
+- **First occurrence** of a variable = declaration (`var`). Subsequent = reassignment.
 
 ## Building and running
 
 ```bash
-cd src
+# CLI
+cd cli
 dotnet run -- program.docx             # compile and run
 dotnet run -- program.docx --emit      # show generated C#
 dotnet run -- program.docx --dump-ir   # show formatting-aware IR
 dotnet run -- program.docx --dump-raw  # show raw OpenXML structure
-dotnet run -- --gen fibonacci out.docx       # generate test .docx
-dotnet run -- --gen comprehensive out.docx   # generate comprehensive test
-dotnet run -- --gen arrays out.docx          # generate array features test
+dotnet run -- --gen fibonacci out.docx
+dotnet run -- --gen comprehensive out.docx
+dotnet run -- --gen arrays out.docx
+
+# Web (Blazor WASM)
+cd web
+dotnet run                             # serves at https://localhost:5001
 ```
 
 ## Test programs
 
-- `Factorial.docx` — recursive factorial (hand-authored), outputs 3628800
-- `FizzBuzz.docx` — FizzBuzz with match, sum, for loops (hand-authored)
-- `Fibonacci.docx` — recursive fibonacci (generated), outputs 55
-- `Comprehensive.docx` — exercises all implemented features (generated):
-  - Abs: if statement, unary negation
-  - Max: multi-argument function call
-  - Square: superscript exponentiation
-  - Classify: match with comma patterns, wildcard, italic strings, font cast (N.ToString())
-  - SumTo: for loop, assignment/reassignment, <=
-  - Collatz: Comic Sans bool cast on `n % 2` for if condition
-  - CollatzSteps: for loop with function call in body via formatting brackets
-  - SumOdds: for loop with nested if in body rows (same table)
-  - CalcRange: for loop nested inside an if (table inside table cell)
-  - FormatResult: logical AND (∧), string return
-  - Main: drop cap entry point, multiple print calls, for loop with nested function calls
-- `Arrays.docx` — array features test (generated), outputs 1 3 5 15 30 20:
-  - 1D array literal via numbered list, drop cap + list assignment
-  - Array access via subscript (direct and in for loop)
-  - 2D array literal via nested numbered list
-  - Multidimensional array access via comma-separated subscript
+All live in `docx/` (the single source of truth):
 
-## What's implemented
-
-Functions, multi-arg parameters, return (right-align), if/match/for, assignment (←), reassignment, unary negation, arithmetic (× ÷ − + %), exponentiation (superscript), logical (∨ ∧), comparison (= < > <= >= !=), formatting brackets (bold, highlight), multi-arg function calls (OCaml-style juxtaposition), font-based types and casting (per-token and expression-level), italic string literals, drop cap entry point (void return), print built-in, match wildcards (_), comma-separated match patterns, nested control flow in tables (if inside for, for inside if), arrays (1D and 2D literals via numbered lists, subscript array access, multidimensional subscript with comma separation), imports via bibliography/citations (bibliography Title = filename, citation \p field = function name, recursive resolution), programmatic .docx generation for tests, Roslyn compilation. No dynamic types — all variables must have explicit type fonts.
-
-## Documentation site
-
-`docs/index.html` is a single-page documentation site styled to look like the Microsoft Word UI (title bar, ribbon toolbar, navigation pane, ruler, paper document area, status bar). It documents all implemented language features based on the actual code, with a formatting reference table showing implementation status badges (Implemented/Recognized/Planned). Keep it in sync with code changes.
+- `manual/Factorial.docx` — recursive factorial, outputs 3628800
+- `manual/FizzBuzz.docx` — FizzBuzz with match, sum, for loops; imports Factorial via bibliography citation
+- `generated/Fibonacci.docx` — recursive fibonacci, outputs 55
+- `generated/Comprehensive.docx` — exercises all features: if, match, for, nested control flow, superscript, font casting, formatting brackets, multi-arg calls, arrays (1D/2D), subscript access, logical operators, string returns
+- `generated/Arrays.docx` — array-specific tests: 1D/2D literals, subscript access, for loop over array, multidimensional access
 
 ## Not yet implemented (discussed and specced)
 
 - **Footnotes** → error handling (try/catch — footnote ref = try site, footnote body = catch)
-- **Endnotes** → deferred execution (like Go's `defer` or `finally`)
-- **Track changes** → mutation (variables immutable by default, track changes required to reassign)
-- **Mail merge fields** → generics/templates (`«T»` = generic type parameter)
-- **Cross-references** → pointers/references (cross-ref = pointer, following it = deref)
+- **Endnotes** → deferred execution (`defer` / `finally`)
+- **Track changes** → mutation (immutable by default, track changes required to reassign)
+- **Mail merge fields** → generics/templates (`«T»`)
+- **Cross-references** → pointers/references
 - **Bookmarks** → named references / goto targets
-- **Page breaks** → early return (leave the current page = exit function)
-- **Center alignment** → assertions (centered text must evaluate to true)
+- **Page breaks** → early return
+- **Center alignment** → assertions
 - **Shadow text effect** → copy/clone
-- **Line spacing** → sleep/delay (double-spaced = 2x delay, intentionally useless)
+- **Line spacing** → sleep/delay (intentionally useless)
 - **Small caps** → constants (compile-time)
-- **Table of Contents** → export list (functions in ToC = public, others = private)
-- **Bulleted lists** → other data structures (numbered lists are now used for array literals)
-- **Equation editor** → complex math expressions (deferred — hard to implement)
-- **Font size as numeric literals** → the font size IS the number (not yet used, text content used instead)
-- **Hyperlinks** → alternative function call syntax (URL = function name, display text = args)
-- **Glow text effect** → alternative print (currently using `print` as built-in name instead)
-
-## Planned: Blazor WASM online compiler (next major task)
-
-The main website will be a Blazor WebAssembly app that lets users upload a `.docx`, transpile to C#, compile with Roslyn, and execute — all client-side in the browser. The existing docs site (`docs/index.html`) will be integrated as a secondary tab/panel.
-
-**Reference project:** https://github.com/itsBuggingMe/CSharpWasm — proves Roslyn-in-WASM is feasible with acceptable load times. Ships .NET DLLs in `wwwroot/lib/`, uses `Assembly.Load` on compiled bytes, redirects `Console.Out` to `StringWriter`.
-
-**Planned restructure:**
-```
-wordy.sln           Solution file
-src/                Becomes a class library (Wordy.Core) — keeps Reader/, Ast/, CodeGen/ only
-bin/cli/            Thin console app referencing src/ (Program.cs + Debug/ move here)
-web/                Blazor WASM app referencing src/
-docs/               Existing docs (content integrated into web app)
-```
-
-**Implementation steps:**
-1. Convert `src/` to a class library, move CLI bits to `bin/cli/`
-2. Add `Stream` overload to `DocumentReader.Read()` (OpenXML supports `WordprocessingDocument.Open(stream, false)`)
-3. Create Blazor WASM project (`web/`) targeting .NET 8, requires `wasm-tools` workload
-4. Ship .NET reference DLLs in `wwwroot/lib/` for Roslyn: System.Runtime, System.Private.CoreLib, System.Console, mscorlib, System.Collections, System.Linq.Expressions, Microsoft.CSharp, System.Core, netstandard, etc.
-5. Create `WordyCompiler` service: uploaded .docx stream → DocumentReader → Parser → CSharpEmitter → Roslyn compile with shipped references → Assembly.Load → redirect Console.Out → invoke entry point → return C# source + output + errors
-6. UI: Word-inspired theme (reuse ribbon styling from docs), file upload zone, generated C# panel, console output panel, docs tab
-7. `dynamic` type was removed — all variables require explicit type fonts, entry point is void
+- **Table of Contents** → export list (ToC = public, others = private)
+- **Bulleted lists** → other data structures
+- **Equation editor** → complex math expressions (hard to implement)
+- **Font size as numeric literals** → the size IS the number
+- **Hyperlinks** → alternative function call syntax
+- **Glow text effect** → alternative print
 
 ## Design decisions and gotchas
 
-- Cambria Math is the recommended neutral font since it includes all required Unicode symbols (×, ÷, −, ∨, ∧, ←).
-- The `−` character (U+2212) is the minus sign, NOT the ASCII hyphen `-`. The parser accepts both but documents should use `−` for consistency. Same for `×` (not `*`) and `÷` (not `/`).
-- To pass a negated value as a function argument, it must be wrapped in an inner formatting bracket to disambiguate from binary subtraction. E.g., `abs(−5)` needs "abs " [bold] + "−5" [bold+highlight].
-- OpenXML enum types (JustificationValues, DropCapLocationValues) have broken ToString() — use `.InnerText` on the Val property to get the string representation.
-- Word's `[Dd]ebug/` gitignore pattern catches `src/Debug/` — the gitignore was fixed to use `**/bin/[Dd]ebug/` instead.
-- The `old/` directory contains an earlier abandoned attempt from ~3 years ago. Ignore it.
-- `.docx` test files live at `/mnt/d/dev/wordy/` (a Windows path accessible from WSL).
+- Cambria Math is the recommended neutral font — includes ×, ÷, −, ∨, ∧, ←.
+- `−` (U+2212) is the minus sign, not ASCII `-`. Same for `×` (not `*`) and `÷` (not `/`).
+- OpenXML enum types (JustificationValues, etc.) have broken `ToString()` — use `.InnerText` on the Val property.
+- `double.TryParse` treats commas as thousands separators in some locales. The tokenizer rejects comma-containing text as numbers to avoid `1,0` → `10` in subscripts.
+- Inline citations in OpenXML are `SdtRun` elements containing `FieldCode` runs. The reader detects `<w:citation />` in SDT properties and extracts the function name from the `CITATION \p FunctionName` field instruction.
+- The web project ships .NET reference DLLs as `.bin` files (renamed from `.dll`) in `wwwroot/lib/` to avoid GitHub Pages blocking. These are copied from the browser-wasm runtime pack at build time.
