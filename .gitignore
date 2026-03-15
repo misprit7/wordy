@@ -402,6 +402,9 @@ FodyWeavers.xsd
 # .NET reference assemblies for Blazor WASM Roslyn (copied by MSBuild at build time)
 web/wwwroot/lib/*.bin
 
+# Example .docx files (copied/generated at build time)
+web/wwwroot/examples/
+
 # Generated docx test files
 docx/generated/*
 !docx/generated/.gitkeep

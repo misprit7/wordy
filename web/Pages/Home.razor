@@ -1,6 +1,7 @@
 @page "/"
 @using web.Services
 @inject WordyCompiler Compiler
+@inject IJSRuntime JS
 
 <div class="app-container">
     <!-- Title Bar -->
@@ -22,14 +23,8 @@
     <!-- Ribbon Tabs -->
     <div class="ribbon-tabs">
         <button class="ribbon-tab file-tab">File</button>
-        <button class="ribbon-tab @(activeTab == "home" ? "active" : "")" @onclick='() => activeTab = "home"'>Home</button>
         <button class="ribbon-tab @(activeTab == "compiler" ? "active" : "")" @onclick='() => activeTab = "compiler"'>Compiler</button>
-        <button class="ribbon-tab">Insert</button>
-        <button class="ribbon-tab">Design</button>
-        <button class="ribbon-tab">Layout</button>
-        <button class="ribbon-tab">References</button>
-        <button class="ribbon-tab">Review</button>
-        <button class="ribbon-tab">View</button>
+        <button class="ribbon-tab @(activeTab == "docs" ? "active" : "")" @onclick='() => activeTab = "docs"'>Docs</button>
     </div>
 
     <!-- Ribbon Panel -->
@@ -43,31 +38,38 @@
                         <span>Upload<br/>.docx</span>
                     </label>
                     <InputFile id="docxUpload" OnChange="HandleFileUpload" accept=".docx" style="display:none" />
+                    <div class="ribbon-separator"></div>
+                    <div class="example-dropdown">
+                        <select @onchange="LoadExample" class="example-select">
+                            <option value="">Load example...</option>
+                            <option value="Factorial">Factorial</option>
+                            <option value="FizzBuzz">FizzBuzz</option>
+                            <option value="Fibonacci">Fibonacci</option>
+                            <option value="Comprehensive">Comprehensive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="ribbon-group-content loaded-file-indicator">
+                    @if (loadedDocxName != null)
+                    {
+                        <span class="loaded-file-icon">&#x1F4C4;</span>
+                        <span class="file-name">@loadedDocxName</span>
+                    }
+                    else
+                    {
+                        <span class="file-hint">No file loaded</span>
+                    }
                 </div>
                 <span class="ribbon-group-label">File</span>
             </div>
             <div class="ribbon-group">
                 <div class="ribbon-group-content">
-                    <button class="ribbon-btn @(isCompiling ? "disabled" : "")" @onclick="RunCompiler" disabled="@(uploadedFile == null || isCompiling)">
+                    <button class="ribbon-btn @(isCompiling ? "disabled" : "")" @onclick="RunCompiler" disabled="@(loadedDocx == null || isCompiling)">
                         <span class="ribbon-btn-icon">&#x25B6;</span>
                         <span>@(isCompiling ? "Running..." : "Run")</span>
                     </button>
                 </div>
                 <span class="ribbon-group-label">Execute</span>
-            </div>
-            <div class="ribbon-group">
-                <div class="ribbon-group-content file-info">
-                    @if (uploadedFile != null)
-                    {
-                        <span class="file-name">@uploadedFile.Name</span>
-                        <span class="file-size">@FormatSize(uploadedFile.Size)</span>
-                    }
-                    else
-                    {
-                        <span class="file-hint">No file uploaded</span>
-                    }
-                </div>
-                <span class="ribbon-group-label">Document</span>
             </div>
         }
         else
@@ -86,8 +88,8 @@
                         <button class="fmt-btn" title="Bold = Bracket"><b>B</b></button>
                         <button class="fmt-btn" title="Italic = String Literal"><i>I</i></button>
                         <button class="fmt-btn" style="text-decoration:underline;" title="Underline">U</button>
-                        <button class="fmt-btn">x<sup style="font-size:8px;">2</sup></button>
-                        <button class="fmt-btn">x<sub style="font-size:8px;">2</sub></button>
+                        <button class="fmt-btn" title="Subscript = Array Access">x&#x2082;</button>
+                        <button class="fmt-btn" title="Superscript = Exponentiation">x&#x00B2;</button>
                     </div>
                 </div>
                 <span class="ribbon-group-label">Font = Types &amp; Casting</span>
@@ -134,7 +136,7 @@
         }
     </div>
 
-    @if (activeTab == "home")
+    @if (activeTab == "docs")
     {
         <!-- Ruler -->
         <div class="ruler">
@@ -153,19 +155,21 @@
     <div class="main-area">
         @if (activeTab == "compiler")
         {
-            <div class="panels">
-                <!-- C# Source Panel -->
-                <div class="panel">
-                    <div class="panel-header">Generated C#</div>
-                    <div class="panel-body code">
-                        <pre>@(result?.CSharpSource ?? "// Upload a .docx file and click Run")</pre>
+            <div class="compiler-pages">
+                <div class="compiler-page">
+                    <div class="page-title">Document Preview <span class="page-title-disclaimer" title="This preview is rendered client-side using the docx-preview JavaScript library, not Microsoft Word's rendering engine. Formatting, fonts, and layout may differ from how the document appears in Word. For accurate editing and viewing, open the .docx file in Microsoft Word.">(approximate rendering)</span></div>
+                    <div class="page-preview">
+                        <div class="preview-placeholder" style="@(loadedDocx != null ? "display:none" : "")">Upload a .docx to preview</div>
+                        <div id="docx-preview"></div>
                     </div>
                 </div>
-
-                <!-- Console Output Panel -->
-                <div class="panel">
-                    <div class="panel-header">Console Output</div>
-                    <div class="panel-body console @(result?.Success == false ? "has-error" : "")">
+                <div class="compiler-page">
+                    <div class="page-title">Generated C#</div>
+                    <pre class="page-code">@(result?.CSharpSource ?? "// Upload a .docx file and click Run")</pre>
+                </div>
+                <div class="compiler-page">
+                    <div class="page-title">Console Output</div>
+                    <div class="page-console @(result?.Success == false ? "has-error" : "")">
                         @if (result != null)
                         {
                             @if (result.Output != null)
@@ -179,7 +183,7 @@
                         }
                         else if (isCompiling)
                         {
-                            <div class="loading">Compiling...</div>
+                            <div class="compiling">Compiling...</div>
                         }
                     </div>
                 </div>
@@ -206,7 +210,7 @@
             }
         </div>
         <div class="status-right-area">
-            @if (activeTab == "home")
+            @if (activeTab == "docs")
             {
                 <span>&#128196; Print Layout</span>
                 <span class="status-separator">100%</span>
@@ -222,20 +226,61 @@
 @code {
     private string activeTab = "compiler";
     private IBrowserFile? uploadedFile;
+    private byte[]? loadedDocx;
+    private string? loadedDocxName;
     private CompilationResult? result;
     private bool isCompiling;
     private string statusText = "Ready";
 
-    private void HandleFileUpload(InputFileChangeEventArgs e)
+    [Inject] private HttpClient Http { get; set; } = default!;
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
     {
         uploadedFile = e.File;
         result = null;
-        statusText = $"Loaded: {uploadedFile.Name}";
+
+        using var stream = uploadedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        loadedDocx = ms.ToArray();
+        loadedDocxName = uploadedFile.Name;
+        statusText = $"Loaded: {loadedDocxName}";
+        StateHasChanged();
+        await Task.Yield();
+
+        // Render docx preview
+        var base64 = Convert.ToBase64String(loadedDocx);
+        await JS.InvokeVoidAsync("renderDocxPreview", "docx-preview", base64);
+    }
+
+    private async Task LoadExample(ChangeEventArgs e)
+    {
+        var name = e.Value?.ToString();
+        if (string.IsNullOrEmpty(name)) return;
+
+        try
+        {
+            loadedDocx = await Http.GetByteArrayAsync($"examples/{name}.docx");
+            loadedDocxName = $"{name}.docx";
+            uploadedFile = null;
+            result = null;
+            statusText = $"Loaded example: {loadedDocxName}";
+            StateHasChanged();
+            await Task.Yield();
+
+            // Render docx preview
+            var base64 = Convert.ToBase64String(loadedDocx);
+            await JS.InvokeVoidAsync("renderDocxPreview", "docx-preview", base64);
+        }
+        catch (Exception ex)
+        {
+            statusText = $"Failed to load example: {ex.Message}";
+        }
     }
 
     private async Task RunCompiler()
     {
-        if (uploadedFile == null || isCompiling) return;
+        if (loadedDocx == null || isCompiling) return;
 
         isCompiling = true;
         result = null;
@@ -244,20 +289,9 @@
 
         await Task.Yield(); // Let UI update
 
-        using var stream = uploadedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-        using var ms = new MemoryStream();
-        await stream.CopyToAsync(ms);
-        ms.Position = 0;
-
+        using var ms = new MemoryStream(loadedDocx);
         result = await Compiler.CompileAndRunAsync(ms);
         isCompiling = false;
         statusText = result.Success ? "Compiled and executed successfully" : "Compilation failed";
-    }
-
-    private string FormatSize(long bytes)
-    {
-        if (bytes < 1024) return $"{bytes} B";
-        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
-        return $"{bytes / (1024.0 * 1024.0):F1} MB";
     }
 }

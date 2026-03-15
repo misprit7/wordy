@@ -28,6 +28,13 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Generate example programs
+        run: |
+          mkdir -p web/wwwroot/examples
+          cp docx/manual/*.docx web/wwwroot/examples/
+          dotnet run --project bin/cli -- --gen fibonacci web/wwwroot/examples/Fibonacci.docx
+          dotnet run --project bin/cli -- --gen comprehensive web/wwwroot/examples/Comprehensive.docx
+
       - name: Rewrite base href for GitHub Pages
         run: sed -i 's|<base href="/" />|<base href="/wordy/" />|' web/wwwroot/index.html
 

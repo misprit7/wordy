@@ -419,7 +419,8 @@ body {
   overflow-y: auto;
   padding: 30px 40px 60px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   scroll-behavior: smooth;
 }
 
@@ -428,8 +429,10 @@ body {
   box-shadow: 0 1px 4px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04);
   max-width: 850px;
   width: 100%;
-  min-height: 100%;
+  min-height: 1000px;
   padding: 60px 72px 80px;
+  margin-bottom: 24px;
+  flex-shrink: 0;
 }
 
 /* ─── Document Content Styles ─── */
@@ -877,11 +880,6 @@ li { margin-bottom: 4px; }
 /* Smooth transitions for active nav */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-.section-divider {
-  border: none;
-  border-top: 1px solid var(--ribbon-border);
-  margin: 30px 0;
-}
 
 /* Embedded mode: hide chrome when loaded in iframe */
 body.embedded .title-bar,
@@ -915,12 +913,6 @@ body.embedded .main-container { height: 100vh; }
 <div class="ribbon-tabs">
   <button class="ribbon-tab file-tab">File</button>
   <button class="ribbon-tab active">Home</button>
-  <button class="ribbon-tab">Insert</button>
-  <button class="ribbon-tab">Design</button>
-  <button class="ribbon-tab">Layout</button>
-  <button class="ribbon-tab">References</button>
-  <button class="ribbon-tab">Review</button>
-  <button class="ribbon-tab">View</button>
 </div>
 
 <!-- Ribbon Panel -->
@@ -938,8 +930,8 @@ body.embedded .main-container { height: 100vh; }
         <button class="fmt-btn" title="Bold = Bracket"><b>B</b></button>
         <button class="fmt-btn" title="Italic = String Literal"><i>I</i></button>
         <button class="fmt-btn" style="text-decoration:underline;" title="Underline">U</button>
-        <button class="fmt-btn">x<sup style="font-size:8px;">2</sup></button>
-        <button class="fmt-btn">x<sub style="font-size:8px;">2</sub></button>
+        <button class="fmt-btn" title="Subscript = Array Access">x&#x2082;</button>
+        <button class="fmt-btn" title="Superscript = Exponentiation">x&#x00B2;</button>
       </div>
     </div>
     <span class="ribbon-group-label">Font = Types &amp; Casting</span>
@@ -1133,8 +1125,9 @@ wordy MyProgram.docx <span class="op">--emit</span>
         </div>
       </section>
 
-      <hr class="section-divider">
+    </div>
 
+    <div class="document-paper">
       <!-- Type System -->
       <section id="type-system">
         <h2>Type System</h2>
@@ -1207,8 +1200,9 @@ wordy MyProgram.docx <span class="op">--emit</span>
         </div>
       </section>
 
-      <hr class="section-divider">
+    </div>
 
+    <div class="document-paper">
       <!-- Functions -->
       <section id="functions">
         <h2>Functions</h2>
@@ -1292,8 +1286,9 @@ wordy MyProgram.docx <span class="op">--emit</span>
         </div>
       </section>
 
-      <hr class="section-divider">
+    </div>
 
+    <div class="document-paper">
       <!-- Variables -->
       <section id="variables">
         <h2>Variables &amp; Assignment</h2>
@@ -1309,7 +1304,6 @@ result <span class="op">&larr;</span> result <span class="op">&times;</span> n  
         <p>Identifiers are <strong>case-insensitive</strong>. They are sanitized to PascalCase in the generated C# output, with special characters replaced by underscores.</p>
       </section>
 
-      <hr class="section-divider">
 
       <!-- Expressions -->
       <section id="expressions">
@@ -1522,8 +1516,9 @@ result <span class="op">&larr;</span> result <span class="op">&times;</span> n  
         </table>
       </section>
 
-      <hr class="section-divider">
+    </div>
 
+    <div class="document-paper">
       <!-- Control Flow -->
       <section id="control-flow">
         <h2>Control Flow</h2>
@@ -1632,8 +1627,9 @@ result <span class="op">&larr;</span> result <span class="op">&times;</span> n  
         </div>
       </section>
 
-      <hr class="section-divider">
+    </div>
 
+    <div class="document-paper">
       <!-- Print -->
       <section id="print">
         <h2>Print Statement</h2>
@@ -1648,7 +1644,6 @@ result <span class="op">&larr;</span> result <span class="op">&times;</span> n  
         </div>
       </section>
 
-      <hr class="section-divider">
 
       <!-- Formatting Reference -->
       <section id="formatting-ref">
@@ -1710,7 +1705,7 @@ result <span class="op">&larr;</span> result <span class="op">&times;</span> n  
 <!-- Status Bar -->
 <div class="status-bar">
   <div class="status-left">
-    <span class="status-item">Page 1 of 1</span>
+    <span class="status-item">Page 1 of 6</span>
     <span class="status-item">Words: &infin;</span>
     <span class="status-item">English (United States)</span>
   </div>

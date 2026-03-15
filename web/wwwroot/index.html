@@ -44,6 +44,30 @@
             );
         }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docx-preview@0.3.3/dist/docx-preview.min.js"></script>
+    <script>
+        window.renderDocxPreview = async function (containerId, base64Data) {
+            console.log('[docx-preview] called with containerId:', containerId, 'base64 length:', base64Data?.length);
+            const container = document.getElementById(containerId);
+            console.log('[docx-preview] container element:', container);
+            if (!container) { console.error('[docx-preview] container not found!'); return; }
+            try {
+                const bytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+                const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+                console.log('[docx-preview] blob size:', blob.size, 'docx global:', typeof docx);
+                await docx.renderAsync(blob, container, null, {
+                    className: 'docx-preview-content',
+                    inWrapper: false,
+                    ignoreWidth: true,
+                    ignoreHeight: true,
+                });
+                console.log('[docx-preview] render complete, container innerHTML length:', container.innerHTML.length);
+            } catch (err) {
+                console.error('[docx-preview] render error:', err);
+            }
+        };
+    </script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
 
