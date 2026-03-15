@@ -42,6 +42,8 @@ public record ExponentExpr(Expr Base, Expr Exponent) : Expr;
 
 public record CastExpr(Expr Value, WordyType TargetType) : Expr;
 
+public record ScanExpr() : Expr;  // Read a character from input (reflection formatting)
+
 public enum BinaryOp
 {
     Add,

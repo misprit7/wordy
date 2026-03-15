@@ -245,6 +245,19 @@ public static class Parser
         if (para.Runs.Count == 0 || string.IsNullOrWhiteSpace(GetText(para)))
             return null;
 
+        // Reflection on a char-typed variable (Symbol font) = scan (read character input)
+        // No ← needed — the reflection formatting itself declares and assigns
+        if (para.Runs.Any(r => r.Reflection))
+        {
+            var reflectionRuns = para.Runs.Where(r => r.Reflection && !string.IsNullOrWhiteSpace(r.Text)).ToList();
+            if (reflectionRuns.Count > 0)
+            {
+                var varName = string.Join("", reflectionRuns.Select(r => r.Text)).Trim().ToLowerInvariant();
+                if (!string.IsNullOrEmpty(varName))
+                    return new AssignStmt(varName, new ScanExpr());
+            }
+        }
+
         // Check for assignment (contains ←)
         var assignStmt = TryParseAssignment(para.Runs);
         if (assignStmt is not null)
@@ -255,6 +268,15 @@ public static class Parser
         {
             var expr = ParseExpression(para.Runs);
             return expr is not null ? new ReturnStmt(expr) : null;
+        }
+
+        // Glow formatting = print (alternative to print function call)
+        if (para.Runs.Any(r => r.Glow))
+        {
+            var glowRuns = para.Runs.Where(r => r.Glow).ToList();
+            var expr = ParseExpression(glowRuns);
+            if (expr is not null)
+                return new PrintStmt(expr);
         }
 
         // Try to parse as expression, then check for print

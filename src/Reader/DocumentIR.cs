@@ -24,7 +24,9 @@ public record RunElement(
     double? FontSize,
     string? HighlightColor,
     string? Underline,
-    bool SmallCaps
+    bool SmallCaps,
+    bool Glow = false,
+    bool Reflection = false
 );
 
 public record TableElement(

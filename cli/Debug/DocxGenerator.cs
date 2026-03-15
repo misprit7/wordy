@@ -33,7 +33,9 @@ public static class DocxGenerator
         ));
 
         body.Append(new Paragraph());
-        AppendDropCapPrint(body, new[] { R("fibonacci 10", bold: true) });
+        // Drop cap entry point — first letter "F" merges with "ibonacci 10" (glow = print)
+        AppendDropCapRun(body, "F");
+        body.Append(MakeGlowParagraph(new[] { R("ibonacci 10", bold: true) }));
         body.Append(new Paragraph());
 
         Save(doc);
@@ -204,24 +206,26 @@ public static class DocxGenerator
         // ── Entry point ──
         // Print abs(−5) → 5 (tests unary negation as argument)
         // Inner highlight bracket groups "−5" as the argument
-        AppendDropCapPrint(body, new[] {
-            R("abs ", bold: true),
+        // Drop cap entry point — "A" merges with "bs −5" (glow = print)
+        AppendDropCapRun(body, "A");
+        body.Append(MakeGlowParagraph(new[] {
+            R("bs ", bold: true),
             R("−5", bold: true, highlight: HighlightColorValues.Yellow),
-        });
+        }));
 
-        // Print max(3, 7) → 7 (tests multi-arg function call)
-        body.Append(MakePrintParagraph(new[] { R("max 3 7", bold: true) }));
+        // Glow = print: max(3, 7) → 7 (tests multi-arg function call)
+        body.Append(MakeGlowParagraph(new[] { R("max 3 7", bold: true) }));
 
-        // Print square(6) → 36 (tests superscript exponentiation)
-        body.Append(MakePrintParagraph(new[] { R("square 6", bold: true) }));
+        // Glow = print: square(6) → 36 (tests superscript exponentiation)
+        body.Append(MakeGlowParagraph(new[] { R("square 6", bold: true) }));
 
-        body.Append(MakePrintParagraph(new[] { R("sumto 10", bold: true) }));
-        body.Append(MakePrintParagraph(new[] { R("collatzsteps 27", bold: true) }));
-        body.Append(MakePrintParagraph(new[] { R("sumodds 10", bold: true) }));
-        body.Append(MakePrintParagraph(new[] { R("calcrange 5", bold: true) }));
-        body.Append(MakePrintParagraph(new[] { R("calcrange 0", bold: true) }));
-        body.Append(MakePrintParagraph(new[] { R("formatresult 42", bold: true) }));
-        body.Append(MakePrintParagraph(new[] { R("formatresult 200", bold: true) }));
+        body.Append(MakeGlowParagraph(new[] { R("sumto 10", bold: true) }));
+        body.Append(MakeGlowParagraph(new[] { R("collatzsteps 27", bold: true) }));
+        body.Append(MakeGlowParagraph(new[] { R("sumodds 10", bold: true) }));
+        body.Append(MakeGlowParagraph(new[] { R("calcrange 5", bold: true) }));
+        body.Append(MakeGlowParagraph(new[] { R("calcrange 0", bold: true) }));
+        body.Append(MakeGlowParagraph(new[] { R("formatresult 42", bold: true) }));
+        body.Append(MakeGlowParagraph(new[] { R("formatresult 200", bold: true) }));
 
         // For loop: print classify(i) for i = 0..3
         body.Append(MakeForTable(
@@ -245,11 +249,11 @@ public static class DocxGenerator
         body.Append(MakeListParagraph(numId: 1, ilvl: 0, R("7", font: "Courier New")));
         body.Append(MakeListParagraph(numId: 1, ilvl: 0, R("11", font: "Courier New")));
 
-        // Print primes[0] → 2, primes[4] → 11 (subscript array access)
-        body.Append(MakePrintParagraph(new[] {
+        // Glow = print: primes[0] → 2, primes[4] → 11 (subscript array access)
+        body.Append(MakeGlowParagraph(new[] {
             R("Primes", bold: true), R("0", bold: true, subscript: true),
         }));
-        body.Append(MakePrintParagraph(new[] {
+        body.Append(MakeGlowParagraph(new[] {
             R("Primes", bold: true), R("4", bold: true, subscript: true),
         }));
 
@@ -263,8 +267,8 @@ public static class DocxGenerator
                 new[] { R("Arrsum ← Arrsum + Primes"), R("I", subscript: true) },
             }
         ));
-        // Print sum → 28
-        body.Append(MakePrintParagraph(new[] { R("Arrsum", bold: true) }));
+        // Glow = print: sum → 28
+        body.Append(MakeGlowParagraph(new[] { R("Arrsum", bold: true) }));
 
         // 2D array literal via nested numbered list: Grid ← [[1, 2, 3], [4, 5, 6]]
         body.Append(MakeParagraph(R("Grid ←")));
@@ -277,11 +281,11 @@ public static class DocxGenerator
         body.Append(MakeListParagraph(numId: 2, ilvl: 1, R("5")));
         body.Append(MakeListParagraph(numId: 2, ilvl: 1, R("6")));
 
-        // Print grid[0,2] → 3, grid[1,1] → 5 (multidimensional subscript access)
-        body.Append(MakePrintParagraph(new[] {
+        // Glow = print: grid[0,2] → 3, grid[1,1] → 5 (multidimensional subscript access)
+        body.Append(MakeGlowParagraph(new[] {
             R("Grid", bold: true), R("0,2", bold: true, subscript: true),
         }));
-        body.Append(MakePrintParagraph(new[] {
+        body.Append(MakeGlowParagraph(new[] {
             R("Grid", bold: true), R("1,1", bold: true, subscript: true),
         }));
 
@@ -308,18 +312,18 @@ public static class DocxGenerator
         body.Append(MakeListParagraph(numId: 1, ilvl: 0, R("4", font: "Courier New")));
         body.Append(MakeListParagraph(numId: 1, ilvl: 0, R("5", font: "Courier New")));
 
-        // Print nums[0] → 1 (subscript array access inside bold bracket for print arg)
-        body.Append(MakePrintParagraph(new[] {
+        // Glow = print: nums[0] → 1 (subscript array access)
+        body.Append(MakeGlowParagraph(new[] {
             R("nums", bold: true), R("0", bold: true, subscript: true),
         }));
 
-        // Print nums[2] → 3
-        body.Append(MakePrintParagraph(new[] {
+        // Glow = print: nums[2] → 3
+        body.Append(MakeGlowParagraph(new[] {
             R("nums", bold: true), R("2", bold: true, subscript: true),
         }));
 
-        // Print nums[4] → 5
-        body.Append(MakePrintParagraph(new[] {
+        // Glow = print: nums[4] → 5
+        body.Append(MakeGlowParagraph(new[] {
             R("nums", bold: true), R("4", bold: true, subscript: true),
         }));
 
@@ -333,8 +337,8 @@ public static class DocxGenerator
                 new[] { R("Total ← Total + Nums"), R("I", subscript: true) },
             }
         ));
-        // Print total → 15
-        body.Append(MakePrintParagraph(new[] { R("Total", bold: true) }));
+        // Glow = print: total → 15
+        body.Append(MakeGlowParagraph(new[] { R("Total", bold: true) }));
 
         // Create a 2D array via nested list: matrix ←
         body.Append(MakeParagraph(R("Matrix ←")));
@@ -347,13 +351,13 @@ public static class DocxGenerator
         body.Append(MakeListParagraph(numId: 2, ilvl: 1, R("30")));
         body.Append(MakeListParagraph(numId: 2, ilvl: 1, R("40")));
 
-        // Print matrix[1,0] → 30
-        body.Append(MakePrintParagraph(new[] {
+        // Glow = print: matrix[1,0] → 30
+        body.Append(MakeGlowParagraph(new[] {
             R("Matrix", bold: true), R("1,0", bold: true, subscript: true),
         }));
 
-        // Print matrix[0,1] → 20
-        body.Append(MakePrintParagraph(new[] {
+        // Glow = print: matrix[0,1] → 20
+        body.Append(MakeGlowParagraph(new[] {
             R("Matrix", bold: true), R("0,1", bold: true, subscript: true),
         }));
 
@@ -527,9 +531,9 @@ public static class DocxGenerator
     private static Run R(string text, string? font = null,
         bool bold = false, bool italic = false,
         HighlightColorValues? highlight = null, bool superscript = false,
-        bool subscript = false)
+        bool subscript = false, bool glow = false, bool reflection = false)
     {
-        return MakeRun(text, font, bold, italic, highlight, superscript, subscript);
+        return MakeRun(text, font, bold, italic, highlight, superscript, subscript, glow, reflection);
     }
 
     // ── Paragraph builders ──
@@ -565,6 +569,30 @@ public static class DocxGenerator
         return para;
     }
 
+    private static Paragraph MakeGlowParagraph(Run[] argRuns)
+    {
+        var para = new Paragraph();
+        foreach (var run in argRuns)
+        {
+            // Clone the run but add glow to its properties
+            var glowRun = (Run)run.CloneNode(true);
+            var props = glowRun.RunProperties ?? new RunProperties();
+            if (props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Glow>() is null)
+            {
+                props.Append(new DocumentFormat.OpenXml.Office2010.Word.Glow
+                {
+                    GlowRadius = new DocumentFormat.OpenXml.Int64Value(63500L),
+                    RgbColorModelHex = new DocumentFormat.OpenXml.Office2010.Word.RgbColorModelHex { Val = "4472C4" }
+                });
+            }
+            if (glowRun.RunProperties is null)
+                glowRun.InsertAt(props, 0);
+            para.Append(glowRun);
+        }
+        return para;
+    }
+
+    // Keep print-based helpers for backward compatibility
     private static Paragraph MakePrintParagraph(Run[] argRuns)
     {
         var para = new Paragraph();
@@ -829,7 +857,7 @@ public static class DocxGenerator
     private static Run MakeRun(string text, string? font = null,
         bool bold = false, bool italic = false,
         HighlightColorValues? highlight = null, bool superscript = false,
-        bool subscript = false)
+        bool subscript = false, bool glow = false, bool reflection = false)
     {
         var run = new Run();
         var props = new RunProperties();
@@ -846,6 +874,21 @@ public static class DocxGenerator
             props.Append(new VerticalTextAlignment { Val = VerticalPositionValues.Superscript });
         if (subscript)
             props.Append(new VerticalTextAlignment { Val = VerticalPositionValues.Subscript });
+        if (glow)
+            props.Append(new DocumentFormat.OpenXml.Office2010.Word.Glow
+            {
+                GlowRadius = new DocumentFormat.OpenXml.Int64Value(63500L),
+                RgbColorModelHex = new DocumentFormat.OpenXml.Office2010.Word.RgbColorModelHex { Val = "4472C4" }
+            });
+        if (reflection)
+            props.Append(new DocumentFormat.OpenXml.Office2010.Word.Reflection
+            {
+                BlurRadius = new DocumentFormat.OpenXml.Int64Value(6350L),
+                StartingOpacity = new DocumentFormat.OpenXml.Int32Value(100000),
+                EndingOpacity = new DocumentFormat.OpenXml.Int32Value(0),
+                Distance = new DocumentFormat.OpenXml.Int64Value(0L),
+                Direction = new DocumentFormat.OpenXml.Int32Value(5400000),
+            });
 
         run.Append(props);
         run.Append(new Text(text) { Space = SpaceProcessingModeValues.Preserve });

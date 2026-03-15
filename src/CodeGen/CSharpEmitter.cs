@@ -315,6 +315,9 @@ public static class CSharpEmitter
             case CastExpr cast:
                 EmitCast(sb, cast);
                 break;
+            case ScanExpr:
+                sb.Append("(char)Console.Read()");
+                break;
         }
     }
 

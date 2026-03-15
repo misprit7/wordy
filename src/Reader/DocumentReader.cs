@@ -245,7 +245,9 @@ public static class DocumentReader
             FontSize: ParseFontSize(props?.FontSize?.Val?.Value),
             HighlightColor: props?.Highlight?.Val?.InnerText,
             Underline: props?.Underline?.Val?.InnerText,
-            SmallCaps: props?.SmallCaps is not null && props.SmallCaps.Val is null or { Value: true }
+            SmallCaps: props?.SmallCaps is not null && props.SmallCaps.Val is null or { Value: true },
+            Glow: props?.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Glow>() is not null,
+            Reflection: props?.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Reflection>() is not null
         );
     }
 
