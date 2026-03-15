@@ -442,23 +442,48 @@ public static class DocxGenerator
     /// </summary>
     private static void AppendDropCapParagraph(Body body, Run initialRun, Run continuationRun)
     {
+        var letter = initialRun.InnerText;
+        AppendDropCapRun(body, letter);
+
+        var contPara = new Paragraph();
+        contPara.Append(continuationRun);
+        body.Append(contPara);
+    }
+
+    /// <summary>
+    /// Creates a drop cap paragraph matching Word's native drop cap formatting:
+    /// keepNext, exact line spacing, baseline text alignment, and position offset.
+    /// </summary>
+    private static void AppendDropCapRun(Body body, string letter)
+    {
         var dropCapPara = new Paragraph();
-        dropCapPara.Append(new ParagraphProperties(new FrameProperties
+        var pProps = new ParagraphProperties();
+        pProps.Append(new KeepNext());
+        pProps.Append(new FrameProperties
         {
             DropCap = DropCapLocationValues.Margin,
             Lines = 3,
             Wrap = TextWrappingValues.Around,
             VerticalPosition = VerticalAnchorValues.Text,
             HorizontalPosition = HorizontalAnchorValues.Page
-        }));
-        initialRun.RunProperties ??= new RunProperties();
-        initialRun.RunProperties.Append(new FontSize { Val = "174" });
-        dropCapPara.Append(initialRun);
-        body.Append(dropCapPara);
+        });
+        pProps.Append(new SpacingBetweenLines { After = "0", Line = "1457", LineRule = LineSpacingRuleValues.Exact });
+        pProps.Append(new TextAlignment { Val = VerticalTextAlignmentValues.Baseline });
+        var pRunProps = new ParagraphMarkRunProperties();
+        pRunProps.Append(new Position { Val = "-3" });
+        pRunProps.Append(new FontSize { Val = "174" });
+        pProps.Append(pRunProps);
+        dropCapPara.Append(pProps);
 
-        var contPara = new Paragraph();
-        contPara.Append(continuationRun);
-        body.Append(contPara);
+        var run = new Run();
+        var rProps = new RunProperties();
+        rProps.Append(new Position { Val = "-3" });
+        rProps.Append(new FontSize { Val = "174" });
+        run.Append(rProps);
+        run.Append(new Text(letter));
+        dropCapPara.Append(run);
+
+        body.Append(dropCapPara);
     }
 
     // ── Document helpers ──
@@ -530,19 +555,7 @@ public static class DocxGenerator
 
     private static void AppendDropCapPrint(Body body, Run[] argRuns)
     {
-        var dropCapPara = new Paragraph();
-        dropCapPara.Append(new ParagraphProperties(new FrameProperties
-        {
-            DropCap = DropCapLocationValues.Margin,
-            Lines = 3,
-            Wrap = TextWrappingValues.Around,
-            VerticalPosition = VerticalAnchorValues.Text,
-            HorizontalPosition = HorizontalAnchorValues.Page
-        }));
-        var pRun = R("P");
-        pRun.RunProperties!.Append(new FontSize { Val = "174" });
-        dropCapPara.Append(pRun);
-        body.Append(dropCapPara);
+        AppendDropCapRun(body, "P");
 
         var printPara = new Paragraph();
         printPara.Append(R("rint "));

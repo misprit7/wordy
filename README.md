@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-    Try it at [xander.naumenko.com/wordy](https://xander.naumenko.com/wordy/).
+    Try it at <a href="https://xander.naumenko.com/wordy">xander.naumenko.com/wordy</a>
 </p>
 
 
