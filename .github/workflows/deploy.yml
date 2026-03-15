@@ -30,10 +30,11 @@ jobs:
 
       - name: Generate example programs
         run: |
+          dotnet run --project bin/cli -- --gen fibonacci docx/generated/Fibonacci.docx
+          dotnet run --project bin/cli -- --gen comprehensive docx/generated/Comprehensive.docx
           mkdir -p web/wwwroot/examples
           cp docx/manual/*.docx web/wwwroot/examples/
-          dotnet run --project bin/cli -- --gen fibonacci web/wwwroot/examples/Fibonacci.docx
-          dotnet run --project bin/cli -- --gen comprehensive web/wwwroot/examples/Comprehensive.docx
+          cp docx/generated/*.docx web/wwwroot/examples/
 
       - name: Rewrite base href for GitHub Pages
         run: sed -i 's|<base href="/" />|<base href="/wordy/" />|' web/wwwroot/index.html
