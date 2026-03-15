@@ -934,7 +934,7 @@ public static class Parser
             "courier new" => WordyType.Int,
             "comic sans ms" => WordyType.Bool,
             "brush script mt" or "lucida handwriting" or "segoe script" => WordyType.Float,
-            "impact" => WordyType.Error,
+            "symbol" => WordyType.Char,
             "calibri" => WordyType.Auto,
             "cambria math" => WordyType.Auto, // equation font, not a type indicator
             _ => WordyType.Auto

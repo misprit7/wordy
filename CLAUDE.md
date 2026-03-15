@@ -16,7 +16,7 @@ The compiler pipeline is: `.docx` → DocumentIR → AST → C# source → Rosly
 - **Functions** = headings. Parameters in subtitle. Return type from heading font.
 - **Brackets** = formatting nesting (bold, highlight). Italic is NOT a bracket — it's for string literals.
 - **Control flow** = tables. 1 merged top cell = match/if. 3 cells in top row = for loop.
-- **Types** = fonts. Courier New = int, Times New Roman = string, Comic Sans = bool, Script = float, Impact = error. Non-reserved fonts (e.g. Cambria Math) carry no type info.
+- **Types** = fonts. Courier New = int, Times New Roman = string, Comic Sans = bool, Script = float, Symbol = char. Non-reserved fonts (e.g. Cambria Math) carry no type info.
 - **Casting** = putting a variable in a different type font.
 - **String literals** = italic text.
 - **Assignment** = `←` (U+2190).

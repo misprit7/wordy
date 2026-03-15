@@ -8,7 +8,7 @@ public enum WordyType
     Float,     // Script/cursive
     String,    // Times New Roman
     Bool,      // Comic Sans
-    Error,     // Impact
+    Char,      // Symbol
     Auto       // Calibri (inferred)
 }
 
