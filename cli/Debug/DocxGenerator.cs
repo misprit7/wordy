@@ -294,6 +294,23 @@ public static class DocxGenerator
         Console.WriteLine($"Generated: {path}");
     }
 
+    public static void GenerateScanTest(string path)
+    {
+        using var doc = CreateDoc(path);
+        var body = doc.MainDocumentPart!.Document!.Body!;
+
+        // Drop cap entry point — "C" merges with "h" (reflection = scan char)
+        AppendDropCapRun(body, "C");
+        // "h" with reflection + Symbol font = declare char variable "ch" via scan
+        body.Append(MakeParagraph(R("h", font: "Symbol", reflection: true)));
+        // Glow print the char
+        body.Append(MakeGlowParagraph(new[] { R("Ch", bold: true) }));
+
+        body.Append(new Paragraph());
+        Save(doc);
+        Console.WriteLine($"Generated: {path}");
+    }
+
     public static void GenerateArrays(string path)
     {
         using var doc = CreateDoc(path);
@@ -886,8 +903,6 @@ public static class DocxGenerator
                 BlurRadius = new DocumentFormat.OpenXml.Int64Value(6350L),
                 StartingOpacity = new DocumentFormat.OpenXml.Int32Value(100000),
                 EndingOpacity = new DocumentFormat.OpenXml.Int32Value(0),
-                Distance = new DocumentFormat.OpenXml.Int64Value(0L),
-                Direction = new DocumentFormat.OpenXml.Int32Value(5400000),
             });
 
         run.Append(props);
