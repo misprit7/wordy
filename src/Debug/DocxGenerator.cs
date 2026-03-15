@@ -40,13 +40,17 @@ public static class DocxGenerator
         );
         table.Append(tblPr);
 
-        // Define grid: 2 columns
-        var grid = new TableGrid(new GridColumn { Width = "4500" }, new GridColumn { Width = "4500" });
+        // Define grid: 2 equal columns
+        var colWidth = "4500";
+        var grid = new TableGrid(
+            new GridColumn { Width = colWidth },
+            new GridColumn { Width = colWidth });
         table.Append(grid);
 
         // Row 0: merged condition cell
         var condRow = new TableRow();
-        var condCell = MakeCell("N = 0 ∨ N = 1", "Cambria Math", gridSpan: 2);
+        var condCell = MakeCell("N = 0 ∨ N = 1", "Cambria Math", gridSpan: 2,
+            widthTwips: int.Parse(colWidth) * 2);
         condRow.Append(condCell);
         table.Append(condRow);
 
@@ -55,7 +59,8 @@ public static class DocxGenerator
 
         // True branch: right-aligned "N" (return N)
         var trueCell = new TableCell();
-        trueCell.Append(new TableCellProperties());
+        trueCell.Append(new TableCellProperties(
+            new TableCellWidth { Width = colWidth, Type = TableWidthUnitValues.Dxa }));
         var truePara = new Paragraph(
             new ParagraphProperties(new Justification { Val = JustificationValues.Right }),
             MakeRun("N", "Cambria Math")
@@ -65,7 +70,8 @@ public static class DocxGenerator
 
         // False branch: right-aligned "fibonacci(n−1) + fibonacci(n−2)"
         var falseCell = new TableCell();
-        falseCell.Append(new TableCellProperties());
+        falseCell.Append(new TableCellProperties(
+            new TableCellWidth { Width = colWidth, Type = TableWidthUnitValues.Dxa }));
         var falsePara = new Paragraph(
             new ParagraphProperties(new Justification { Val = JustificationValues.Right })
         );
@@ -89,16 +95,16 @@ public static class DocxGenerator
         var dropCapPara = new Paragraph();
         var framePr = new FrameProperties
         {
-            DropCap = DropCapLocationValues.Drop,
+            DropCap = DropCapLocationValues.Margin,
             Lines = 3,
             Wrap = TextWrappingValues.Around,
-            HorizontalSpace = "180",
-            VerticalSpace = "180"
+            VerticalPosition = VerticalAnchorValues.Text,
+            HorizontalPosition = HorizontalAnchorValues.Page
         };
         dropCapPara.Append(new ParagraphProperties(framePr));
         var pRun = MakeRun("P", "Cambria Math");
-        // Set large font size for drop cap (89pt = 178 half-points)
-        pRun.RunProperties!.Append(new FontSize { Val = "178" });
+        // Set large font size for drop cap (87pt = 174 half-points)
+        pRun.RunProperties!.Append(new FontSize { Val = "174" });
         dropCapPara.Append(pRun);
         body.Append(dropCapPara);
 
@@ -156,12 +162,16 @@ public static class DocxGenerator
         return run;
     }
 
-    private static TableCell MakeCell(string text, string? font = null, int gridSpan = 1)
+    private static TableCell MakeCell(string text, string? font = null,
+        int gridSpan = 1, int? widthTwips = null)
     {
         var cell = new TableCell();
         var cellProps = new TableCellProperties();
         if (gridSpan > 1)
             cellProps.Append(new GridSpan { Val = gridSpan });
+        if (widthTwips is not null)
+            cellProps.Append(new TableCellWidth
+                { Width = widthTwips.Value.ToString(), Type = TableWidthUnitValues.Dxa });
         cell.Append(cellProps);
         cell.Append(new Paragraph(MakeRun(text, font)));
         return cell;
