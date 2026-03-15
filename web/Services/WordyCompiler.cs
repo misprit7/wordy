@@ -21,6 +21,7 @@ public class WordyCompiler
 
     private static readonly string[] LibraryNames =
     {
+        "System.Private.CoreLib.dll",
         "mscorlib.dll",
         "System.dll",
         "System.Console.dll",
