@@ -1,0 +1,113 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build
+        run: dotnet build
+
+      - name: Generate test programs
+        run: |
+          dotnet run --project cli -- --gen fibonacci docx/generated/Fibonacci.docx
+          dotnet run --project cli -- --gen comprehensive docx/generated/Comprehensive.docx
+
+      - name: Test Factorial
+        run: |
+          output=$(dotnet run --project cli -- docx/manual/Factorial.docx)
+          expected="3628800"
+          if [ "$output" != "$expected" ]; then
+            echo "FAIL: Factorial"
+            echo "Expected: $expected"
+            echo "Got: $output"
+            exit 1
+          fi
+          echo "PASS: Factorial -> $output"
+
+      - name: Test FizzBuzz
+        run: |
+          output=$(dotnet run --project cli -- docx/manual/FizzBuzz.docx)
+          read -r -d '' expected << 'EOF' || true
+          6
+          1
+          2
+          Fizz
+          4
+          Buzz
+          Fizz
+          7
+          8
+          Fizz
+          Buzz
+          11
+          Fizz
+          13
+          14
+          FizzBuzz
+          16
+          17
+          Fizz
+          19
+          EOF
+          if [ "$output" != "$expected" ]; then
+            echo "FAIL: FizzBuzz"
+            echo "Expected:"
+            echo "$expected"
+            echo "Got:"
+            echo "$output"
+            exit 1
+          fi
+          echo "PASS: FizzBuzz"
+
+      - name: Test Fibonacci
+        run: |
+          output=$(dotnet run --project cli -- docx/generated/Fibonacci.docx)
+          expected="55"
+          if [ "$output" != "$expected" ]; then
+            echo "FAIL: Fibonacci"
+            echo "Expected: $expected"
+            echo "Got: $output"
+            exit 1
+          fi
+          echo "PASS: Fibonacci -> $output"
+
+      - name: Test Comprehensive
+        run: |
+          output=$(dotnet run --project cli -- docx/generated/Comprehensive.docx)
+          read -r -d '' expected << 'EOF' || true
+          5
+          7
+          36
+          55
+          111
+          25
+          15
+          0
+          small
+          big
+          Fizz
+          one
+          two
+          Fizz
+          EOF
+          if [ "$output" != "$expected" ]; then
+            echo "FAIL: Comprehensive"
+            echo "Expected:"
+            echo "$expected"
+            echo "Got:"
+            echo "$output"
+            exit 1
+          fi
+          echo "PASS: Comprehensive"
