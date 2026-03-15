@@ -493,6 +493,27 @@ public static class DocxGenerator
         var doc = WordprocessingDocument.Create(path, WordprocessingDocumentType.Document);
         var mainPart = doc.AddMainDocumentPart();
         mainPart.Document = new Document(new Body());
+
+        // Set Cambria Math as the document default font
+        var stylesPart = mainPart.AddNewPart<StyleDefinitionsPart>();
+        stylesPart.Styles = new Styles(
+            new DocDefaults(
+                new RunPropertiesDefault(
+                    new RunPropertiesBaseStyle(
+                        new RunFonts
+                        {
+                            Ascii = "Cambria Math",
+                            HighAnsi = "Cambria Math",
+                            ComplexScript = "Cambria Math",
+                            EastAsia = "Cambria Math"
+                        },
+                        new FontSize { Val = "24" },
+                        new FontSizeComplexScript { Val = "24" }
+                    )
+                )
+            )
+        );
+
         return doc;
     }
 
@@ -508,7 +529,7 @@ public static class DocxGenerator
         HighlightColorValues? highlight = null, bool superscript = false,
         bool subscript = false)
     {
-        return MakeRun(text, font ?? "Cambria Math", bold, italic, highlight, superscript, subscript);
+        return MakeRun(text, font, bold, italic, highlight, superscript, subscript);
     }
 
     // ── Paragraph builders ──
