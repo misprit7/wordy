@@ -20,6 +20,20 @@
         <div class="loading-progress-text"></div>
     </div>
 
+    <div id="mobile-warning" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+        <div style="background:white;max-width:340px;margin:20px;padding:28px 24px;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,0.2);text-align:center;font-family:'Segoe UI',sans-serif;">
+            <div style="font-size:32px;margin-bottom:12px;">&#128187;</div>
+            <div style="font-size:16px;font-weight:600;color:#2b579a;margin-bottom:8px;">Desktop Recommended</div>
+            <p style="font-size:13px;color:#555;line-height:1.6;margin:0 0 20px;">Wordy is a document-based programming language that relies on rich formatting. The compiler interface works best on a larger screen.</p>
+            <button onclick="document.getElementById('mobile-warning').style.display='none'" style="background:#2b579a;color:white;border:none;padding:8px 24px;border-radius:4px;font-size:13px;cursor:pointer;font-family:inherit;">Continue anyway</button>
+        </div>
+    </div>
+    <script>
+        if (window.innerWidth <= 768) {
+            document.getElementById('mobile-warning').style.display = 'flex';
+        }
+    </script>
+
     <div id="blazor-error-ui">
         An unhandled error has occurred.
         <a href="" class="reload">Reload</a>
