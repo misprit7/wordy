@@ -39,17 +39,29 @@
                     </label>
                     <InputFile id="docxUpload" OnChange="HandleFileUpload" accept=".docx" multiple style="display:none" />
                     <div class="ribbon-separator"></div>
-                    <div class="example-dropdown">
-                        <select @onchange="AddExample" class="example-select">
-                            <option value="">Add example...</option>
-                            @foreach (var name in exampleNames)
-                            {
-                                <option value="@name" disabled="@uploadedFiles.ContainsKey($"{name}.docx")">@name@(uploadedFiles.ContainsKey($"{name}.docx") ? " (loaded)" : "")</option>
-                            }
-                        </select>
-                        <button class="ribbon-btn-sm-inline" @onclick="LoadAllExamples" title="Load all example files at once">
-                            All
+                    <div class="example-btn-group">
+                        <button class="ribbon-btn upload-btn example-add-btn" @onclick="ToggleExampleMenu" title="Add a built-in example file">
+                            <span class="ribbon-btn-icon">&#x1F4DA;</span>
+                            <span>Add<br/>Example</span>
                         </button>
+                        @if (showExampleMenu)
+                        {
+                            <div class="example-menu">
+                                @foreach (var name in exampleNames)
+                                {
+                                    var loaded = uploadedFiles.ContainsKey($"{name}.docx");
+                                    <button class="example-menu-item @(loaded ? "disabled" : "")" disabled="@loaded" @onclick="() => AddExampleByName(name)">
+                                        <span class="example-menu-icon">@(loaded ? "\u2714" : "\uD83D\uDCC4")</span>
+                                        @name
+                                    </button>
+                                }
+                                <div class="example-menu-divider"></div>
+                                <button class="example-menu-item example-menu-all" @onclick="LoadAllExamples">
+                                    <span class="example-menu-icon">&#x1F4E5;</span>
+                                    Load All
+                                </button>
+                            </div>
+                        }
                     </div>
                 </div>
                 <span class="ribbon-group-label">Add Files</span>
@@ -266,6 +278,7 @@
 
     private static readonly string[] exampleNames = { "Factorial", "FizzBuzz", "Fibonacci", "Comprehensive" };
 
+    private bool showExampleMenu;
     private string activeTab = "compiler";
     private Dictionary<string, byte[]> uploadedFiles = new();
     private string? mainFileName;
@@ -302,24 +315,24 @@
         await RenderMainPreview();
     }
 
-    private async Task AddExample(ChangeEventArgs e)
+    private void ToggleExampleMenu()
     {
-        var name = e.Value?.ToString();
-        if (string.IsNullOrEmpty(name)) return;
+        showExampleMenu = !showExampleMenu;
+    }
 
+    private async Task AddExampleByName(string name)
+    {
         try
         {
             var bytes = await Http.GetByteArrayAsync($"examples/{name}.docx?v={BuildVersion}");
             var fileName = $"{name}.docx";
             uploadedFiles[fileName] = bytes;
 
-            // If this is the first file, or no main set, make it main
             if (mainFileName == null || uploadedFiles.Count == 1)
-            {
                 mainFileName = fileName;
-            }
 
             result = null;
+            showExampleMenu = false;
             statusText = $"Added {fileName} ({uploadedFiles.Count} files loaded, main: {mainFileName})";
             StateHasChanged();
             await Task.Yield();
@@ -350,6 +363,7 @@
             }
 
             result = null;
+            showExampleMenu = false;
             statusText = $"Loaded all examples ({uploadedFiles.Count} files, main: {mainFileName})";
             StateHasChanged();
             await Task.Yield();
