@@ -35,7 +35,10 @@
       <_WasmRoslynLib Include="$(_WasmPkgPath)/runtimes/browser-wasm/native/System.Private.CoreLib.dll" />
     </ItemGroup>
     <MakeDir Directories="wwwroot/lib" />
-    <Copy SourceFiles="@(_WasmRoslynLib)" DestinationFolder="wwwroot/lib" SkipUnchangedFiles="true" />
+    <!-- Rename .dll to .bin to avoid GitHub Pages blocking .dll files -->
+    <Copy SourceFiles="@(_WasmRoslynLib)"
+          DestinationFiles="@(_WasmRoslynLib->'wwwroot/lib/%(Filename).bin')"
+          SkipUnchangedFiles="true" />
     <Message Importance="high" Text="Roslyn libs: copied from $(_WasmPkgPath)" />
   </Target>
 

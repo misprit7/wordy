@@ -21,14 +21,14 @@ public class WordyCompiler
 
     private static readonly string[] LibraryNames =
     {
-        "System.Private.CoreLib.dll",
-        "mscorlib.dll",
-        "System.dll",
-        "System.Console.dll",
-        "System.Core.dll",
-        "System.Runtime.dll",
-        "System.Collections.dll",
-        "netstandard.dll",
+        "System.Private.CoreLib.bin",
+        "mscorlib.bin",
+        "System.bin",
+        "System.Console.bin",
+        "System.Core.bin",
+        "System.Runtime.bin",
+        "System.Collections.bin",
+        "netstandard.bin",
     };
 
     public WordyCompiler(HttpClient http)
