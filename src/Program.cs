@@ -2,6 +2,21 @@ using Wordy.Reader;
 using Wordy.Ast;
 using Wordy.CodeGen;
 
+// Generate test files
+if (args.Length >= 2 && args[0] == "--gen")
+{
+    switch (args[1].ToLowerInvariant())
+    {
+        case "fibonacci":
+            var outPath = args.Length >= 3 ? args[2] : "Fibonacci.docx";
+            Wordy.Debug.DocxGenerator.GenerateFibonacci(outPath);
+            return 0;
+        default:
+            Console.Error.WriteLine($"Unknown generator: {args[1]}");
+            return 1;
+    }
+}
+
 if (args.Length == 0)
 {
     Console.Error.WriteLine("Usage: wordy <file.docx>");
