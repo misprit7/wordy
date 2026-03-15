@@ -335,6 +335,12 @@ body {
   border: 1px solid var(--ribbon-border);
   font-size: 11px;
   color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.file-chip:hover {
+  border-color: var(--accent-light);
 }
 
 .file-chip-main {
@@ -362,6 +368,36 @@ body {
 .file-chip-remove:hover {
   background: rgba(0,0,0,0.08);
   color: #c62828;
+}
+
+.example-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ribbon-btn-sm-inline {
+  padding: 2px 8px;
+  border: 1px solid var(--ribbon-border);
+  border-radius: 3px;
+  background: white;
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ribbon-btn-sm-inline:hover {
+  background: var(--accent-lighter);
+  border-color: var(--accent-light);
+}
+
+.file-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 4px 0;
 }
 
 /* ─── Quick Access Toolbar ─── */

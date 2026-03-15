@@ -32,69 +32,64 @@
         @if (activeTab == "compiler")
         {
             <div class="ribbon-group">
-                <div class="ribbon-group-content">
-                    <label class="ribbon-btn upload-btn" for="docxUpload">
+                <div class="ribbon-group-content" style="gap:6px;">
+                    <label class="ribbon-btn upload-btn" for="docxUpload" title="Upload one or more .docx files from your computer">
                         <span class="ribbon-btn-icon">&#x1F4C4;</span>
                         <span>Upload<br/>.docx</span>
                     </label>
                     <InputFile id="docxUpload" OnChange="HandleFileUpload" accept=".docx" multiple style="display:none" />
                     <div class="ribbon-separator"></div>
                     <div class="example-dropdown">
-                        <select @onchange="LoadExample" class="example-select">
-                            <option value="">Load example...</option>
-                            <option value="Factorial">Factorial</option>
-                            <option value="FizzBuzz">FizzBuzz</option>
-                            <option value="Fibonacci">Fibonacci</option>
-                            <option value="Comprehensive">Comprehensive</option>
+                        <select @onchange="AddExample" class="example-select">
+                            <option value="">Add example...</option>
+                            @foreach (var name in exampleNames)
+                            {
+                                <option value="@name" disabled="@uploadedFiles.ContainsKey($"{name}.docx")">@name@(uploadedFiles.ContainsKey($"{name}.docx") ? " (loaded)" : "")</option>
+                            }
                         </select>
+                        <button class="ribbon-btn-sm-inline" @onclick="LoadAllExamples" title="Load all example files at once">
+                            All
+                        </button>
                     </div>
                 </div>
-                <div class="ribbon-group-content loaded-file-indicator">
-                    @if (uploadedFiles.Count > 0)
-                    {
-                        <span class="loaded-file-icon">&#x1F4C4;</span>
-                        <span class="file-name">@mainFileName</span>
-                        @if (uploadedFiles.Count > 1)
-                        {
-                            <span class="file-hint">+ @(uploadedFiles.Count - 1) import@(uploadedFiles.Count - 1 == 1 ? "" : "s")</span>
-                        }
-                    }
-                    else
-                    {
-                        <span class="file-hint">No file loaded</span>
-                    }
-                </div>
-                <span class="ribbon-group-label">File</span>
+                <span class="ribbon-group-label">Add Files</span>
             </div>
-            @if (uploadedFiles.Count > 1)
-            {
-                <div class="ribbon-group">
-                    <div class="ribbon-group-content">
-                        <div class="file-list-panel">
-                            <div class="file-list-header">
-                                <span class="file-list-label">Main file:</span>
-                                <select @onchange="ChangeMainFile" class="main-file-select">
-                                    @foreach (var name in uploadedFiles.Keys.OrderBy(n => n))
-                                    {
-                                        <option value="@name" selected="@(name == mainFileName)">@name</option>
-                                    }
-                                </select>
-                            </div>
+            <div class="ribbon-group">
+                <div class="ribbon-group-content">
+                    <div class="file-list-panel">
+                        @if (uploadedFiles.Count > 0)
+                        {
+                            @if (uploadedFiles.Count > 1)
+                            {
+                                <div class="file-list-header">
+                                    <span class="file-list-label">Main:</span>
+                                    <select @onchange="ChangeMainFile" class="main-file-select">
+                                        @foreach (var name in uploadedFiles.Keys.OrderBy(n => n))
+                                        {
+                                            <option value="@name" selected="@(name == mainFileName)">@name</option>
+                                        }
+                                    </select>
+                                </div>
+                            }
                             <div class="file-chips">
                                 @foreach (var name in uploadedFiles.Keys.OrderBy(n => n))
                                 {
-                                    <span class="file-chip @(name == mainFileName ? "file-chip-main" : "")">
-                                        <span class="file-chip-icon">@(name == mainFileName ? "\u2B50" : "\uD83D\uDCC4")</span>
+                                    <span class="file-chip @(name == mainFileName ? "file-chip-main" : "")" @onclick="() => SetMainFile(name)" title="@(name == mainFileName ? "Main file (entry point)" : "Click to set as main")">
+                                        <span class="file-chip-icon">@(name == mainFileName ? "\u25B6" : "\uD83D\uDCC4")</span>
                                         @name
-                                        <button class="file-chip-remove" @onclick="() => RemoveFile(name)" title="Remove">&#10005;</button>
+                                        <button class="file-chip-remove" @onclick="() => RemoveFile(name)" @onclick:stopPropagation="true" title="Remove">&#10005;</button>
                                     </span>
                                 }
                             </div>
-                        </div>
+                        }
+                        else
+                        {
+                            <span class="file-hint">No files loaded &mdash; upload .docx or add an example</span>
+                        }
                     </div>
-                    <span class="ribbon-group-label">Files (@uploadedFiles.Count)</span>
                 </div>
-            }
+                <span class="ribbon-group-label">Files@(uploadedFiles.Count > 0 ? $" ({uploadedFiles.Count})" : "")</span>
+            </div>
             <div class="ribbon-group">
                 <div class="ribbon-group-content">
                     <button class="ribbon-btn @(isCompiling ? "disabled" : "")" @onclick="RunCompiler" disabled="@(uploadedFiles.Count == 0 || isCompiling)">
@@ -266,6 +261,11 @@
 </div>
 
 @code {
+    // Set at build time — changes only on rebuild, so browsers cache until then
+    private static readonly string BuildVersion = typeof(Home).Assembly.GetName().Version?.ToString() ?? "0";
+
+    private static readonly string[] exampleNames = { "Factorial", "FizzBuzz", "Fibonacci", "Comprehensive" };
+
     private string activeTab = "compiler";
     private Dictionary<string, byte[]> uploadedFiles = new();
     private string? mainFileName;
@@ -287,8 +287,7 @@
             uploadedFiles[file.Name] = ms.ToArray();
         }
 
-        // Set the main file to the first uploaded file if not already set,
-        // or if the current main file was removed
+        // Set the main file to the first uploaded file if not already set
         if (mainFileName == null || !uploadedFiles.ContainsKey(mainFileName))
         {
             mainFileName = uploadedFiles.Keys.First();
@@ -300,24 +299,28 @@
         StateHasChanged();
         await Task.Yield();
 
-        // Render docx preview of the main file
         await RenderMainPreview();
     }
 
-    private async Task LoadExample(ChangeEventArgs e)
+    private async Task AddExample(ChangeEventArgs e)
     {
         var name = e.Value?.ToString();
         if (string.IsNullOrEmpty(name)) return;
 
         try
         {
-            var bytes = await Http.GetByteArrayAsync($"examples/{name}.docx");
+            var bytes = await Http.GetByteArrayAsync($"examples/{name}.docx?v={BuildVersion}");
             var fileName = $"{name}.docx";
-            uploadedFiles.Clear();
             uploadedFiles[fileName] = bytes;
-            mainFileName = fileName;
+
+            // If this is the first file, or no main set, make it main
+            if (mainFileName == null || uploadedFiles.Count == 1)
+            {
+                mainFileName = fileName;
+            }
+
             result = null;
-            statusText = $"Loaded example: {mainFileName}";
+            statusText = $"Added {fileName} ({uploadedFiles.Count} files loaded, main: {mainFileName})";
             StateHasChanged();
             await Task.Yield();
 
@@ -327,6 +330,46 @@
         {
             statusText = $"Failed to load example: {ex.Message}";
         }
+    }
+
+    private async Task LoadAllExamples()
+    {
+        try
+        {
+            foreach (var name in exampleNames)
+            {
+                var fileName = $"{name}.docx";
+                if (uploadedFiles.ContainsKey(fileName)) continue;
+                var bytes = await Http.GetByteArrayAsync($"examples/{name}.docx?v={BuildVersion}");
+                uploadedFiles[fileName] = bytes;
+            }
+
+            if (mainFileName == null || !uploadedFiles.ContainsKey(mainFileName))
+            {
+                mainFileName = uploadedFiles.Keys.First();
+            }
+
+            result = null;
+            statusText = $"Loaded all examples ({uploadedFiles.Count} files, main: {mainFileName})";
+            StateHasChanged();
+            await Task.Yield();
+
+            await RenderMainPreview();
+        }
+        catch (Exception ex)
+        {
+            statusText = $"Failed to load examples: {ex.Message}";
+        }
+    }
+
+    private async Task SetMainFile(string name)
+    {
+        if (!uploadedFiles.ContainsKey(name) || name == mainFileName) return;
+        mainFileName = name;
+        statusText = $"Main file: {mainFileName} ({uploadedFiles.Count} files loaded)";
+        StateHasChanged();
+        await Task.Yield();
+        await RenderMainPreview();
     }
 
     private async Task RenderMainPreview()
@@ -342,13 +385,7 @@
     {
         var name = e.Value?.ToString();
         if (string.IsNullOrEmpty(name) || !uploadedFiles.ContainsKey(name)) return;
-
-        mainFileName = name;
-        statusText = $"Main file: {mainFileName} ({uploadedFiles.Count} files loaded)";
-        StateHasChanged();
-        await Task.Yield();
-
-        await RenderMainPreview();
+        await SetMainFile(name);
     }
 
     private async Task RemoveFile(string name)
