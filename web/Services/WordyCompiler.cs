@@ -25,7 +25,6 @@ public class WordyCompiler
         "System.dll",
         "System.Console.dll",
         "System.Core.dll",
-        "System.Private.CoreLib.dll",
         "System.Runtime.dll",
         "System.Collections.dll",
         "netstandard.dll",
