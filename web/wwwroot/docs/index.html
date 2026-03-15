@@ -7,10 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;600;700&family=Courier+Prime&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --ribbon-bg: #2b579a;
-  --ribbon-tab-active: #ffffff;
-  --ribbon-tab-inactive: rgba(255,255,255,0.7);
-  --ribbon-panel-bg: #f3f3f3;
   --ribbon-border: #d1d1d1;
   --accent: #2b579a;
   --accent-light: #4472c4;
@@ -19,7 +15,6 @@
   --text-muted: #666;
   --bg: #e8e8e8;
   --paper: #ffffff;
-  --ruler-bg: #f0f0f0;
   --code-bg: #f8f9fa;
   --table-header: #4472c4;
   --table-alt: #d9e2f3;
@@ -36,278 +31,10 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: var(--bg);
   color: var(--text);
-  overflow: hidden;
+  overflow: auto;
   height: 100vh;
   display: flex;
   flex-direction: column;
-}
-
-/* ─── Title Bar ─── */
-.title-bar {
-  background: var(--ribbon-bg);
-  color: white;
-  display: flex;
-  align-items: center;
-  padding: 4px 12px;
-  font-size: 12px;
-  gap: 8px;
-  min-height: 32px;
-  user-select: none;
-}
-
-.title-bar-icon {
-  width: 18px;
-  height: 18px;
-  background: linear-gradient(135deg, #4472c4, #2b579a);
-  border-radius: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 11px;
-  color: white;
-  border: 1px solid rgba(255,255,255,0.3);
-}
-
-.title-bar-text {
-  flex: 1;
-  text-align: center;
-  font-size: 12px;
-  opacity: 0.95;
-}
-
-.title-bar-buttons {
-  display: flex;
-  gap: 0;
-}
-
-.title-bar-btn {
-  width: 46px;
-  height: 28px;
-  border: none;
-  background: transparent;
-  color: white;
-  font-size: 13px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.title-bar-btn:hover { background: rgba(255,255,255,0.1); }
-.title-bar-btn.close:hover { background: #e81123; }
-
-/* ─── Quick Access Toolbar ─── */
-.quick-access {
-  background: var(--ribbon-bg);
-  padding: 0 12px 0 42px;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  min-height: 22px;
-}
-
-.qa-btn {
-  width: 22px;
-  height: 20px;
-  border: none;
-  background: none;
-  color: rgba(255,255,255,0.7);
-  font-size: 11px;
-  cursor: pointer;
-  border-radius: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.qa-btn:hover { background: rgba(255,255,255,0.15); color: white; }
-
-/* ─── Ribbon Tabs ─── */
-.ribbon-tabs {
-  background: var(--ribbon-bg);
-  display: flex;
-  padding: 0 8px;
-  gap: 0;
-  border-bottom: none;
-}
-
-.ribbon-tab {
-  padding: 6px 16px;
-  color: var(--ribbon-tab-inactive);
-  font-size: 13px;
-  cursor: pointer;
-  border: none;
-  background: none;
-  position: relative;
-  transition: color 0.15s;
-  user-select: none;
-}
-
-.ribbon-tab:hover { color: white; }
-
-.ribbon-tab.active {
-  color: var(--accent);
-  background: var(--ribbon-panel-bg);
-  border-radius: 3px 3px 0 0;
-  font-weight: 600;
-}
-
-.ribbon-tab.file-tab {
-  background: #1a3a6c;
-  color: white;
-  font-weight: 600;
-  border-radius: 3px 3px 0 0;
-  margin-right: 4px;
-}
-.ribbon-tab.file-tab:hover { background: #0f2a52; }
-
-/* ─── Ribbon Panel ─── */
-.ribbon-panel {
-  background: var(--ribbon-panel-bg);
-  border-bottom: 1px solid var(--ribbon-border);
-  min-height: 90px;
-  display: flex;
-  align-items: stretch;
-  padding: 4px 8px;
-  gap: 0;
-}
-
-.ribbon-group {
-  display: flex;
-  flex-direction: column;
-  padding: 4px 12px;
-  border-right: 1px solid var(--ribbon-border);
-  position: relative;
-}
-
-.ribbon-group:last-child { border-right: none; }
-
-.ribbon-group-label {
-  font-size: 10px;
-  color: var(--text-muted);
-  text-align: center;
-  margin-top: auto;
-  padding-top: 4px;
-}
-
-.ribbon-group-content {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex: 1;
-}
-
-.ribbon-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 4px 8px;
-  border: 1px solid transparent;
-  background: none;
-  cursor: pointer;
-  border-radius: 3px;
-  min-width: 56px;
-  font-size: 11px;
-  color: var(--text);
-}
-
-.ribbon-btn:hover {
-  background: rgba(0,0,0,0.05);
-  border-color: var(--ribbon-border);
-}
-
-.ribbon-btn.active {
-  background: var(--accent-lighter);
-  border-color: var(--accent-light);
-}
-
-.ribbon-btn-icon {
-  font-size: 22px;
-  line-height: 1;
-}
-
-.ribbon-btn-sm {
-  flex-direction: row;
-  min-width: auto;
-  padding: 3px 8px;
-  gap: 6px;
-  font-size: 12px;
-}
-
-.ribbon-btn-sm .ribbon-btn-icon { font-size: 14px; }
-
-.font-preview {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 8px;
-  border: 1px solid var(--ribbon-border);
-  border-radius: 3px;
-  background: white;
-  font-size: 12px;
-  min-width: 140px;
-}
-
-.font-size-box {
-  width: 40px;
-  padding: 3px 6px;
-  border: 1px solid var(--ribbon-border);
-  border-radius: 3px;
-  background: white;
-  font-size: 12px;
-  text-align: center;
-}
-
-.format-buttons {
-  display: flex;
-  gap: 1px;
-}
-
-.fmt-btn {
-  width: 28px;
-  height: 26px;
-  border: 1px solid transparent;
-  background: none;
-  cursor: pointer;
-  border-radius: 2px;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text);
-}
-
-.fmt-btn:hover { background: rgba(0,0,0,0.06); border-color: var(--ribbon-border); }
-.fmt-btn b { font-weight: 900; }
-.fmt-btn i { font-style: italic; }
-
-/* ─── Ruler ─── */
-.ruler {
-  background: var(--ruler-bg);
-  border-bottom: 1px solid var(--ribbon-border);
-  height: 22px;
-  display: flex;
-  align-items: flex-end;
-  padding: 0 var(--sidebar-width);
-  overflow: hidden;
-}
-
-.ruler-marks {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  align-items: flex-end;
-  padding: 0 40px;
-}
-
-.ruler-mark {
-  flex: 1;
-  text-align: center;
-  font-size: 9px;
-  color: var(--text-muted);
-  border-left: 1px solid #ccc;
-  padding-bottom: 2px;
 }
 
 /* ─── Main Layout ─── */
@@ -796,21 +523,6 @@ code {
 
 .op-name { color: var(--text); }
 
-/* Status bar */
-.status-bar {
-  background: var(--ribbon-bg);
-  color: white;
-  font-size: 11px;
-  padding: 3px 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  min-height: 24px;
-}
-
-.status-left, .status-right { display: flex; gap: 16px; align-items: center; }
-.status-item { opacity: 0.8; }
-
 /* Badge */
 .badge {
   display: inline-block;
@@ -880,114 +592,10 @@ li { margin-bottom: 4px; }
 /* Smooth transitions for active nav */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-
-/* Embedded mode: hide chrome when loaded in iframe */
-body.embedded .title-bar,
-body.embedded .ribbon-tabs,
-body.embedded .ribbon-panel,
-body.embedded .ruler,
-body.embedded .status-bar { display: none; }
-body.embedded { overflow: auto; }
-body.embedded .main-container { height: 100vh; }
+.main-container { height: 100vh; }
 </style>
 </head>
 <body>
-
-<!-- Title Bar -->
-<div class="title-bar">
-  <div class="title-bar-icon">W</div>
-  <div class="quick-access" style="background:none;padding:0;">
-    <button class="qa-btn" title="Save">&#128190;</button>
-    <button class="qa-btn" title="Undo">&#8630;</button>
-    <button class="qa-btn" title="Redo">&#8631;</button>
-  </div>
-  <div class="title-bar-text">Wordy Language Reference &mdash; Official Documentation</div>
-  <div class="title-bar-buttons">
-    <button class="title-bar-btn">&#8211;</button>
-    <button class="title-bar-btn">&#9633;</button>
-    <button class="title-bar-btn close">&#10005;</button>
-  </div>
-</div>
-
-<!-- Ribbon Tabs -->
-<div class="ribbon-tabs">
-  <button class="ribbon-tab file-tab">File</button>
-  <button class="ribbon-tab active">Home</button>
-</div>
-
-<!-- Ribbon Panel -->
-<div class="ribbon-panel">
-  <div class="ribbon-group">
-    <div class="ribbon-group-content">
-      <div class="font-preview">
-        <span style="font-family:'Courier New';font-size:13px;">Courier New</span>
-        <span style="color:#999;font-size:10px;">&#9660;</span>
-      </div>
-      <div class="font-size-box">12</div>
-    </div>
-    <div class="ribbon-group-content">
-      <div class="format-buttons">
-        <button class="fmt-btn" title="Bold = Bracket"><b>B</b></button>
-        <button class="fmt-btn" title="Italic = String Literal"><i>I</i></button>
-        <button class="fmt-btn" style="text-decoration:underline;" title="Underline">U</button>
-        <button class="fmt-btn" title="Subscript = Array Access">x&#x2082;</button>
-        <button class="fmt-btn" title="Superscript = Exponentiation">x&#x00B2;</button>
-      </div>
-    </div>
-    <span class="ribbon-group-label">Font = Types &amp; Casting</span>
-  </div>
-
-  <div class="ribbon-group">
-    <div class="ribbon-group-content">
-      <div style="display:flex;flex-direction:column;gap:2px;">
-        <button class="ribbon-btn ribbon-btn-sm"><span class="ribbon-btn-icon">&#8592;</span> Left</button>
-        <button class="ribbon-btn ribbon-btn-sm"><span class="ribbon-btn-icon">&#8594;</span> Right = Return</button>
-        <button class="ribbon-btn ribbon-btn-sm"><span class="ribbon-btn-icon">&#8596;</span> Center</button>
-      </div>
-    </div>
-    <span class="ribbon-group-label">Paragraph</span>
-  </div>
-
-  <div class="ribbon-group">
-    <div class="ribbon-group-content">
-      <button class="ribbon-btn">
-        <span class="ribbon-btn-icon" style="font-size:18px;font-weight:700;">H1</span>
-        <span>Heading</span>
-      </button>
-      <button class="ribbon-btn">
-        <span class="ribbon-btn-icon" style="font-size:14px;color:var(--text-muted);">Subtitle</span>
-        <span>Params</span>
-      </button>
-      <button class="ribbon-btn">
-        <span class="ribbon-btn-icon" style="font-size:28px;line-height:0.8;">D</span>
-        <span>Drop Cap</span>
-      </button>
-    </div>
-    <span class="ribbon-group-label">Styles = Functions</span>
-  </div>
-
-  <div class="ribbon-group">
-    <div class="ribbon-group-content">
-      <button class="ribbon-btn">
-        <span class="ribbon-btn-icon">&#9638;</span>
-        <span>Table</span>
-      </button>
-    </div>
-    <span class="ribbon-group-label">Control Flow</span>
-  </div>
-</div>
-
-<!-- Ruler -->
-<div class="ruler">
-  <div class="ruler-marks">
-    <span class="ruler-mark">1</span><span class="ruler-mark">2</span>
-    <span class="ruler-mark">3</span><span class="ruler-mark">4</span>
-    <span class="ruler-mark">5</span><span class="ruler-mark">6</span>
-    <span class="ruler-mark">7</span><span class="ruler-mark">8</span>
-    <span class="ruler-mark">9</span><span class="ruler-mark">10</span>
-    <span class="ruler-mark">11</span><span class="ruler-mark">12</span>
-  </div>
-</div>
 
 <!-- Main Content -->
 <div class="main-container">
@@ -1702,25 +1310,7 @@ result <span class="op">&larr;</span> result <span class="op">&times;</span> n  
   </div>
 </div>
 
-<!-- Status Bar -->
-<div class="status-bar">
-  <div class="status-left">
-    <span class="status-item">Page 1 of 6</span>
-    <span class="status-item">Words: &infin;</span>
-    <span class="status-item">English (United States)</span>
-  </div>
-  <div class="status-right">
-    <span class="status-item">&#128196; Print Layout</span>
-    <span class="status-item">100%</span>
-  </div>
-</div>
-
 <script>
-// Embedded mode detection
-if (new URLSearchParams(window.location.search).has('embedded')) {
-  document.body.classList.add('embedded');
-}
-
 // Navigation
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => {
@@ -1750,13 +1340,6 @@ docArea.addEventListener('scroll', () => {
   });
 });
 
-// Ribbon tab switching (cosmetic)
-document.querySelectorAll('.ribbon-tab:not(.file-tab)').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.ribbon-tab:not(.file-tab)').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-  });
-});
 </script>
 
 </body>
