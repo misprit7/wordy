@@ -46,18 +46,42 @@ public static class DocxGenerator
         var body = doc.MainDocumentPart!.Document!.Body!;
 
         // ── Function 1: Abs(N: int) → int ──
-        // Tests: if statement, comparison (<), subtraction (−), return
+        // Tests: if statement, comparison (<), unary negation (−N), return
         body.Append(MakeHeading("Abs", "Courier New"));
         body.Append(MakeSubtitle("N", "Courier New"));
         body.Append(MakeIfTable(
             condition: new[] { R("N < 0") },
-            trueBranch: new[] { R("0 − N") },
+            trueBranch: new[] { R("−N") },  // unary negation
             falseBranch: new[] { R("N") },
             rightAlignBranches: true
         ));
         body.Append(new Paragraph());
 
-        // ── Function 2: Classify(N: int) → string ──
+        // ── Function 2: Max(A B: int) → int ──
+        // Tests: multi-argument function, comparison (>)
+        body.Append(MakeHeading("Max", "Courier New"));
+        // Two separate parameter runs so they're parsed as individual params
+        body.Append(new Paragraph(
+            new ParagraphProperties(new ParagraphStyleId { Val = "Subtitle" }),
+            MakeRun("A ", "Courier New"),
+            MakeRun("B", "Courier New")));
+        body.Append(MakeIfTable(
+            condition: new[] { R("A > B") },
+            trueBranch: new[] { R("A") },
+            falseBranch: new[] { R("B") },
+            rightAlignBranches: true
+        ));
+        body.Append(new Paragraph());
+
+        // ── Function 3: Square(N: int) → int ──
+        // Tests: superscript exponentiation
+        body.Append(MakeHeading("Square", "Courier New"));
+        body.Append(MakeSubtitle("N", "Courier New"));
+        // Return N² (N with superscript 2)
+        body.Append(MakeRightAligned(R("N"), R("2", superscript: true)));
+        body.Append(new Paragraph());
+
+        // ── Function 4: Classify(N: int) → string ──
         // Tests: match (3-row), comma-separated patterns, wildcard _, italic strings, font casting
         body.Append(MakeHeading("Classify", "Times New Roman"));
         body.Append(MakeSubtitle("N", "Courier New"));
@@ -91,17 +115,18 @@ public static class DocxGenerator
         body.Append(new Paragraph());
 
         // ── Function 4: Collatz(N: int) → int ──
-        // Tests: match (2 cases), modulo (%), division (÷), multiplication (×)
+        // Tests: if with Comic Sans bool cast (n%2 in Comic Sans = Convert.ToBoolean),
+        //        division (÷), multiplication (×)
         body.Append(MakeHeading("Collatz", "Courier New"));
         body.Append(MakeSubtitle("N", "Courier New"));
-        body.Append(MakeMatchTable(
-            subject: new[] { R("N % 2") },
-            patterns: new[] { "0", "_" },
-            bodies: new Run[][] {
-                new[] { R("N ÷ 2") },
-                new[] { R("N × 3 + 1") },
-            },
-            rightAlignBodies: true
+        body.Append(MakeIfTable(
+            // n % 2 in Comic Sans = cast to bool (truthy = odd, falsy = even)
+            condition: new[] { R("N % 2", font: "Comic Sans MS") },
+            // true (odd): N × 3 + 1
+            trueBranch: new[] { R("N × 3 + 1") },
+            // false (even): N ÷ 2
+            falseBranch: new[] { R("N ÷ 2") },
+            rightAlignBranches: true
         ));
         body.Append(new Paragraph());
 
@@ -109,13 +134,12 @@ public static class DocxGenerator
         // Tests: for loop with nested function call in body, formatting brackets for call
         body.Append(MakeHeading("CollatzSteps", "Courier New"));
         body.Append(MakeSubtitle("Start", "Courier New"));
-        body.Append(MakeParagraph(R("N ← Start")));  // assignment
+        body.Append(MakeParagraph(R("N ← Start")));
         body.Append(MakeForTable(
             init: new[] { R("Steps ← 0") },
             condition: new[] { R("N > 1") },
             step: new[] { R("Steps ← Steps + 1") },
             bodyParagraphs: new Run[][] {
-                // N ← Collatz(N) — with formatting brackets for function call
                 new[] {
                     R("N ← "),
                     R("Collatz ", highlight: HighlightColorValues.Yellow),
@@ -123,11 +147,48 @@ public static class DocxGenerator
                 },
             }
         ));
-        body.Append(MakeRightAligned(R("Steps")));  // return
+        body.Append(MakeRightAligned(R("Steps")));
         body.Append(new Paragraph());
 
-        // ── Function 6: FormatResult(N: int) → string ──
-        // Tests: logical AND (∧), if statement with string return, nested brackets
+        // ── Function 6: SumOdds(Limit: int) → int ──
+        // Tests: for loop with nested if in body rows (same table), Comic Sans bool cast
+        body.Append(MakeHeading("SumOdds", "Courier New"));
+        body.Append(MakeSubtitle("Limit", "Courier New"));
+        body.Append(MakeParagraph(R("Total ← 0")));
+        body.Append(MakeForWithNestedIf(
+            init: new[] { R("I ← 1") },
+            condition: new[] { R("I <= Limit") },
+            step: new[] { R("I ← I + 1") },
+            // Nested if: I % 2 in Comic Sans (bool cast)
+            ifCondition: new[] { R("I % 2", font: "Comic Sans MS") },
+            // true (odd): add to total
+            ifTrue: new[] { R("Total ← Total + I") },
+            // false (even): do nothing (empty cell)
+            ifFalse: null
+        ));
+        body.Append(MakeRightAligned(R("Total")));
+        body.Append(new Paragraph());
+
+        // ── Function 7: CalcRange(N: int) → int ──
+        // Tests: for loop INSIDE an if statement (nested table in cell)
+        body.Append(MakeHeading("CalcRange", "Courier New"));
+        body.Append(MakeSubtitle("N", "Courier New"));
+        body.Append(MakeIfTableWithNestedFor(
+            condition: new[] { R("N > 0") },
+            // true branch: for loop summing 1 to N, then return Result
+            trueInit: new[] { R("Result ← 0") },
+            trueForInit: new[] { R("I ← 1") },
+            trueForCond: new[] { R("I <= N") },
+            trueForStep: new[] { R("I ← I + 1") },
+            trueForBody: new Run[][] { new[] { R("Result ← Result + I") } },
+            trueReturn: new[] { R("Result") },
+            // false branch: return 0
+            falseReturn: new[] { R("0") }
+        ));
+        body.Append(new Paragraph());
+
+        // ── Function 8: FormatResult(N: int) → string ──
+        // Tests: logical AND (∧), if statement with string return
         body.Append(MakeHeading("FormatResult", "Times New Roman"));
         body.Append(MakeSubtitle("N", "Courier New"));
         body.Append(MakeIfTable(
@@ -139,34 +200,28 @@ public static class DocxGenerator
         body.Append(new Paragraph());
 
         // ── Entry point ──
-        // Print abs(0 − 5) → 5
+        // Print abs(−5) → 5 (tests unary negation as argument)
+        // Inner highlight bracket groups "−5" as the argument
         AppendDropCapPrint(body, new[] {
             R("abs ", bold: true),
-            R("0 − 5", bold: true, highlight: HighlightColorValues.Yellow),
+            R("−5", bold: true, highlight: HighlightColorValues.Yellow),
         });
 
-        // Print sumto(10) → 55
-        body.Append(MakePrintParagraph(new[] {
-            R("sumto 10", bold: true),
-        }));
+        // Print max(3, 7) → 7 (tests multi-arg function call)
+        body.Append(MakePrintParagraph(new[] { R("max 3 7", bold: true) }));
 
-        // Print collatzsteps(27) → 111
-        body.Append(MakePrintParagraph(new[] {
-            R("collatzsteps 27", bold: true),
-        }));
+        // Print square(6) → 36 (tests superscript exponentiation)
+        body.Append(MakePrintParagraph(new[] { R("square 6", bold: true) }));
 
-        // Print formatresult(42) → "small"
-        body.Append(MakePrintParagraph(new[] {
-            R("formatresult 42", bold: true),
-        }));
-
-        // Print formatresult(200) → "big"
-        body.Append(MakePrintParagraph(new[] {
-            R("formatresult 200", bold: true),
-        }));
+        body.Append(MakePrintParagraph(new[] { R("sumto 10", bold: true) }));
+        body.Append(MakePrintParagraph(new[] { R("collatzsteps 27", bold: true) }));
+        body.Append(MakePrintParagraph(new[] { R("sumodds 10", bold: true) }));
+        body.Append(MakePrintParagraph(new[] { R("calcrange 5", bold: true) }));
+        body.Append(MakePrintParagraph(new[] { R("calcrange 0", bold: true) }));
+        body.Append(MakePrintParagraph(new[] { R("formatresult 42", bold: true) }));
+        body.Append(MakePrintParagraph(new[] { R("formatresult 200", bold: true) }));
 
         // For loop: print classify(i) for i = 0..3
-        // Tests: for loop in main, function call inside print inside loop body
         body.Append(MakeForTable(
             init: new[] { R("I ← 0") },
             condition: new[] { R("I < 4") },
@@ -203,9 +258,9 @@ public static class DocxGenerator
 
     private static Run R(string text, string? font = null,
         bool bold = false, bool italic = false,
-        HighlightColorValues? highlight = null)
+        HighlightColorValues? highlight = null, bool superscript = false)
     {
-        return MakeRun(text, font ?? "Cambria Math", bold, italic, highlight);
+        return MakeRun(text, font ?? "Cambria Math", bold, italic, highlight, superscript);
     }
 
     // ── Paragraph builders ──
@@ -391,6 +446,106 @@ public static class DocxGenerator
         return table;
     }
 
+    /// <summary>
+    /// For loop table where the body rows form a nested if statement.
+    /// Row 0: init | cond | step, Row 1: merged if-condition, Row 2: true | false branches
+    /// </summary>
+    private static Table MakeForWithNestedIf(Run[] init, Run[] condition, Run[] step,
+        Run[] ifCondition, Run[] ifTrue, Run[]? ifFalse)
+    {
+        var table = new Table();
+        table.Append(MakeTableProps(3));
+
+        // Use 2 columns for the if branches, so gridSpan math works:
+        // for header has 3 cells but if branches have 2
+        // We need the grid to accommodate both: use a common grid
+        // Actually simplest: use 2 columns. For header merges as needed.
+        var colW = 4500;
+        table.Append(new TableGrid(
+            new GridColumn { Width = colW.ToString() },
+            new GridColumn { Width = colW.ToString() }));
+
+        // Row 0: for header — we'll use 2 cells but pack init+cond+step
+        // Actually for 3-cell header with 2-col grid, we need to rethink.
+        // Let's use a 4-column grid: init | cond | step maps to cols, if branches use 2 each
+        table = new Table();
+        table.Append(MakeTableProps(4));
+        var cw = 2250;
+        table.Append(new TableGrid(
+            new GridColumn { Width = cw.ToString() },
+            new GridColumn { Width = cw.ToString() },
+            new GridColumn { Width = cw.ToString() },
+            new GridColumn { Width = cw.ToString() }));
+
+        // Row 0: for header — 3 cells (first spans 2 grid cols to keep 3 visible cells)
+        var headerRow = new TableRow();
+        headerRow.Append(MakeCellFromRuns(init, widthTwips: cw));
+        headerRow.Append(MakeCellFromRuns(condition, gridSpan: 2, widthTwips: cw * 2));
+        headerRow.Append(MakeCellFromRuns(step, widthTwips: cw));
+        table.Append(headerRow);
+
+        // Row 1: if condition (merged across all 4 cols)
+        var condRow = new TableRow();
+        condRow.Append(MakeCellFromRuns(ifCondition, gridSpan: 4, widthTwips: cw * 4));
+        table.Append(condRow);
+
+        // Row 2: if branches (2 cells, each spanning 2 grid cols)
+        var branchRow = new TableRow();
+        branchRow.Append(MakeCellFromRuns(ifTrue, gridSpan: 2, widthTwips: cw * 2));
+        branchRow.Append(MakeCellFromRuns(ifFalse ?? Array.Empty<Run>(),
+            gridSpan: 2, widthTwips: cw * 2));
+        table.Append(branchRow);
+
+        return table;
+    }
+
+    /// <summary>
+    /// If table where the true branch contains a for loop (nested table inside cell).
+    /// </summary>
+    private static Table MakeIfTableWithNestedFor(Run[] condition,
+        Run[] trueInit, Run[] trueForInit, Run[] trueForCond, Run[] trueForStep,
+        Run[][] trueForBody, Run[] trueReturn,
+        Run[] falseReturn)
+    {
+        var table = new Table();
+        table.Append(MakeTableProps(2));
+
+        var colW = 4500;
+        table.Append(new TableGrid(
+            new GridColumn { Width = colW.ToString() },
+            new GridColumn { Width = colW.ToString() }));
+
+        // Row 0: merged condition
+        var condRow = new TableRow();
+        condRow.Append(MakeCellFromRuns(condition, gridSpan: 2, widthTwips: colW * 2));
+        table.Append(condRow);
+
+        // Row 1: branches
+        var branchRow = new TableRow();
+
+        // True branch cell: assignment + nested for loop table + return
+        var trueCell = new TableCell();
+        trueCell.Append(new TableCellProperties(
+            new TableCellWidth { Width = colW.ToString(), Type = TableWidthUnitValues.Dxa }));
+        // Assignment before the loop
+        trueCell.Append(MakeParagraph(trueInit));
+        // Nested for loop table
+        trueCell.Append(MakeForTable(trueForInit, trueForCond, trueForStep, trueForBody));
+        // Return value (right-aligned)
+        var retPara = new Paragraph(
+            new ParagraphProperties(new Justification { Val = JustificationValues.Right }));
+        foreach (var run in trueReturn)
+            retPara.Append(run);
+        trueCell.Append(retPara);
+        branchRow.Append(trueCell);
+
+        // False branch cell: just return
+        branchRow.Append(MakeCellFromRuns(falseReturn, rightAlign: true, widthTwips: colW));
+        table.Append(branchRow);
+
+        return table;
+    }
+
     // ── Low-level helpers ──
 
     private static TableCell MakeCellFromRuns(Run[] runs, int gridSpan = 1,
@@ -417,7 +572,7 @@ public static class DocxGenerator
 
     private static Run MakeRun(string text, string? font = null,
         bool bold = false, bool italic = false,
-        HighlightColorValues? highlight = null)
+        HighlightColorValues? highlight = null, bool superscript = false)
     {
         var run = new Run();
         var props = new RunProperties();
@@ -430,6 +585,8 @@ public static class DocxGenerator
             props.Append(new Italic());
         if (highlight is not null)
             props.Append(new Highlight { Val = highlight });
+        if (superscript)
+            props.Append(new VerticalTextAlignment { Val = VerticalPositionValues.Superscript });
 
         run.Append(props);
         run.Append(new Text(text) { Space = SpaceProcessingModeValues.Preserve });

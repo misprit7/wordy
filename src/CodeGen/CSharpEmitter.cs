@@ -272,7 +272,7 @@ public static class CSharpEmitter
                 sb.Append(']');
                 break;
             case ExponentExpr exp:
-                sb.Append("Math.Pow(");
+                sb.Append("(int)Math.Pow(");
                 EmitExpr(sb, exp.Base);
                 sb.Append(", ");
                 EmitExpr(sb, exp.Exponent);

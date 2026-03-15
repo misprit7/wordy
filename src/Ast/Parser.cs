@@ -502,10 +502,42 @@ public static class Parser
         if (tokens.Count == 0) return null;
 
         var pos = 0;
-        return ParseLogicalOr(tokens, ref pos);
+        var expr = ParseLogicalOr(tokens, ref pos);
+        if (expr is null) return null;
+
+        // Expression-level font casting: if all value tokens share a single
+        // non-Auto font type and there are multiple value tokens, the font
+        // applies to the whole expression, not individual tokens.
+        // e.g., "n % 2" all in Comic Sans = Convert.ToBoolean(n % 2)
+        var valueTokens = tokens
+            .Where(t => t.Kind is TokenKind.Identifier or TokenKind.Number)
+            .ToList();
+        if (valueTokens.Count > 1)
+        {
+            var fontTypes = valueTokens
+                .Select(t => t.FontType)
+                .Where(t => t != WordyType.Auto)
+                .Distinct()
+                .ToList();
+
+            if (fontTypes.Count == 1)
+            {
+                expr = new CastExpr(UnwrapCasts(expr), fontTypes[0]);
+            }
+        }
+
+        return expr;
     }
 
-    private record Token(TokenKind Kind, string Value, FormattingState Fmt, WordyType FontType, string OriginalText);
+    private static Expr UnwrapCasts(Expr expr) => expr switch
+    {
+        CastExpr c => UnwrapCasts(c.Value),
+        BinaryExpr b => new BinaryExpr(UnwrapCasts(b.Left), b.Op, UnwrapCasts(b.Right)),
+        UnaryExpr u => new UnaryExpr(u.Op, UnwrapCasts(u.Operand)),
+        _ => expr
+    };
+
+    private record Token(TokenKind Kind, string Value, FormattingState Fmt, WordyType FontType, string OriginalText, bool IsSuperscript = false);
 
     private enum TokenKind
     {
@@ -540,22 +572,21 @@ public static class Parser
     private static List<Token> Tokenize(List<RunElement> runs)
     {
         // Step 1: Split runs into individual word/operator tokens with formatting + font type
-        var rawTokens = new List<(string Text, FormattingState Fmt, bool IsOperator, WordyType FontType, bool IsItalic)>();
+        var rawTokens = new List<(string Text, FormattingState Fmt, bool IsOperator, WordyType FontType, bool IsItalic, bool IsSuperscript)>();
 
         foreach (var run in runs)
         {
             var fmt = FormattingState.FromRun(run);
             var fontType = FontToType(run.FontName);
             var isItalic = run.Italic;
+            var isSuperscript = run.Superscript;
             var text = run.Text;
 
             if (isItalic)
             {
-                // Italic text is a string literal — don't split by operators/whitespace,
-                // preserve the raw text as-is
                 var trimmed = text.Trim();
                 if (!string.IsNullOrEmpty(trimmed))
-                    rawTokens.Add((trimmed, fmt, false, fontType, true));
+                    rawTokens.Add((trimmed, fmt, false, fontType, true, isSuperscript));
             }
             else
             {
@@ -568,7 +599,7 @@ public static class Parser
                     if (IsOperatorChar(text[i]))
                     {
                         var op = ExtractOperator(text, ref i);
-                        rawTokens.Add((op, fmt, true, fontType, false));
+                        rawTokens.Add((op, fmt, true, fontType, false, isSuperscript));
                     }
                     else
                     {
@@ -576,7 +607,7 @@ public static class Parser
                         while (i < text.Length && !char.IsWhiteSpace(text[i]) && !IsOperatorChar(text[i]))
                             i++;
                         var word = text.Substring(start, i - start);
-                        rawTokens.Add((word, fmt, false, fontType, false));
+                        rawTokens.Add((word, fmt, false, fontType, false, isSuperscript));
                     }
                 }
             }
@@ -587,7 +618,7 @@ public static class Parser
         var fmtStack = new List<FormattingFlags>();
         var currentFmt = FormattingFlags.None;
 
-        foreach (var (text, fmt, isOp, fontType, isItalic) in rawTokens)
+        foreach (var (text, fmt, isOp, fontType, isItalic, isSuperscript) in rawTokens)
         {
             var newFmt = fmt.Flags;
 
@@ -626,19 +657,19 @@ public static class Parser
             // Italic text = string literal
             if (isItalic)
             {
-                tokens.Add(new Token(TokenKind.String, text, fmt, WordyType.String, text));
+                tokens.Add(new Token(TokenKind.String, text, fmt, WordyType.String, text, isSuperscript));
             }
             else if (isOp)
             {
-                tokens.Add(new Token(TokenKind.Operator, text, fmt, fontType, text));
+                tokens.Add(new Token(TokenKind.Operator, text, fmt, fontType, text, isSuperscript));
             }
             else if (double.TryParse(text, out _))
             {
-                tokens.Add(new Token(TokenKind.Number, text, fmt, fontType, text));
+                tokens.Add(new Token(TokenKind.Number, text, fmt, fontType, text, isSuperscript));
             }
             else
             {
-                tokens.Add(new Token(TokenKind.Identifier, text.ToLowerInvariant(), fmt, fontType, text));
+                tokens.Add(new Token(TokenKind.Identifier, text.ToLowerInvariant(), fmt, fontType, text, isSuperscript));
             }
         }
 
@@ -761,7 +792,7 @@ public static class Parser
 
     private static Expr? ParseMultiplicative(List<Token> tokens, ref int pos)
     {
-        var left = ParsePrimary(tokens, ref pos);
+        var left = ParseUnary(tokens, ref pos);
         if (left is null) return null;
 
         while (pos < tokens.Count &&
@@ -776,12 +807,50 @@ public static class Parser
                 _ => BinaryOp.Multiply
             };
             pos++;
-            var right = ParsePrimary(tokens, ref pos);
+            var right = ParseUnary(tokens, ref pos);
             if (right is null) break;
             left = new BinaryExpr(left, op, right);
         }
 
         return left;
+    }
+
+    private static Expr? ParseUnary(List<Token> tokens, ref int pos)
+    {
+        // Unary negation: − or - at the start of an expression
+        if (pos < tokens.Count &&
+            tokens[pos].Kind == TokenKind.Operator &&
+            tokens[pos].Value is "−" or "-")
+        {
+            pos++;
+            var operand = ParseUnary(tokens, ref pos);
+            if (operand is null) return null;
+            return new UnaryExpr(UnaryOp.Negate, operand);
+        }
+        return ParseExponent(tokens, ref pos);
+    }
+
+    private static Expr? ParseExponent(List<Token> tokens, ref int pos)
+    {
+        var baseExpr = ParsePrimary(tokens, ref pos);
+        if (baseExpr is null) return null;
+
+        // If the next token(s) are superscript, they form the exponent
+        if (pos < tokens.Count && tokens[pos].IsSuperscript)
+        {
+            var superTokens = new List<Token>();
+            while (pos < tokens.Count && tokens[pos].IsSuperscript)
+            {
+                superTokens.Add(tokens[pos]);
+                pos++;
+            }
+            var superPos = 0;
+            var exponent = ParseLogicalOr(superTokens, ref superPos);
+            if (exponent is not null)
+                return new ExponentExpr(baseExpr, exponent);
+        }
+
+        return baseExpr;
     }
 
     private static Expr? ParsePrimary(List<Token> tokens, ref int pos)
@@ -812,8 +881,6 @@ public static class Parser
             double.TryParse(token.Value, out var val);
             Expr expr = new NumberLiteral(val);
 
-            // Font-based casting: only cast if the font implies a non-numeric type
-            // (numbers are naturally int/float, so casting to int is a no-op)
             if (token.FontType != WordyType.Auto &&
                 token.FontType != WordyType.Int &&
                 token.FontType != WordyType.Float)
@@ -830,16 +897,17 @@ public static class Parser
             var name = token.Value;
 
             // Identifier followed by bracket = function call
-            // Parse entire bracket content as a single argument (with juxtaposition)
+            // Delegate to ParseBracketContent which handles juxtaposition + multi-arg
             if (pos < tokens.Count && tokens[pos].Kind == TokenKind.BracketOpen)
             {
                 pos++; // consume open bracket
-                var args = new List<Expr>();
                 var content = ParseBracketContent(tokens, ref pos);
-                if (content is not null)
-                    args.Add(content);
                 if (pos < tokens.Count && tokens[pos].Kind == TokenKind.BracketClose)
                     pos++;
+                // Bracket content is the argument(s) to this function
+                var args = new List<Expr>();
+                if (content is not null)
+                    args.Add(content);
                 return new CallExpr(name, args);
             }
 
@@ -847,33 +915,43 @@ public static class Parser
             if (token.FontType != WordyType.Auto)
                 return new CastExpr(new VariableRef(name), token.FontType);
 
-
             return new VariableRef(name);
         }
 
         return null;
     }
 
+    /// <summary>
+    /// Parses content inside a formatting bracket. If the bracket contains
+    /// an identifier followed by values (not operators), it's a function call
+    /// with multiple arguments (OCaml-style juxtaposition).
+    /// e.g., bold("max a b") = max(a, b)
+    /// </summary>
     private static Expr? ParseBracketContent(List<Token> tokens, ref int pos)
     {
         if (pos >= tokens.Count || tokens[pos].Kind == TokenKind.BracketClose)
             return null;
 
-        // If first token is an identifier and there are more non-operator
-        // tokens before the close bracket, it's a function call (juxtaposition)
         if (tokens[pos].Kind == TokenKind.Identifier)
         {
             var savedPos = pos;
             var name = tokens[pos].Value;
             pos++;
 
+            // Check if this looks like a function call
             if (pos < tokens.Count &&
                 tokens[pos].Kind != TokenKind.BracketClose &&
                 tokens[pos].Kind != TokenKind.Operator)
             {
-                var arg = ParseLogicalOr(tokens, ref pos);
-                if (arg is not null)
-                    return new CallExpr(name, new List<Expr> { arg });
+                var args = new List<Expr>();
+                while (pos < tokens.Count && tokens[pos].Kind != TokenKind.BracketClose)
+                {
+                    var arg = ParseLogicalOr(tokens, ref pos);
+                    if (arg is null) break;
+                    args.Add(arg);
+                }
+                if (args.Count > 0)
+                    return new CallExpr(name, args);
             }
 
             pos = savedPos;
