@@ -194,6 +194,16 @@ body {
   line-height: 1;
 }
 
+.ribbon-btn-sm {
+  flex-direction: row;
+  min-width: auto;
+  padding: 3px 8px;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.ribbon-btn-sm .ribbon-btn-icon { font-size: 14px; }
+
 .upload-btn {
   cursor: pointer;
 }
@@ -223,6 +233,101 @@ body {
 .ribbon-hint {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+/* ─── Quick Access Toolbar ─── */
+.quick-access {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.qa-btn {
+  width: 22px;
+  height: 20px;
+  border: none;
+  background: none;
+  color: rgba(255,255,255,0.7);
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qa-btn:hover { background: rgba(255,255,255,0.15); color: white; }
+
+/* ─── Font Preview (docs ribbon) ─── */
+.font-preview {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border: 1px solid var(--ribbon-border);
+  border-radius: 3px;
+  background: white;
+  font-size: 12px;
+  min-width: 140px;
+}
+
+.font-size-box {
+  width: 40px;
+  padding: 3px 6px;
+  border: 1px solid var(--ribbon-border);
+  border-radius: 3px;
+  background: white;
+  font-size: 12px;
+  text-align: center;
+}
+
+.format-buttons {
+  display: flex;
+  gap: 1px;
+}
+
+.fmt-btn {
+  width: 28px;
+  height: 26px;
+  border: 1px solid transparent;
+  background: none;
+  cursor: pointer;
+  border-radius: 2px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  font-family: inherit;
+}
+
+.fmt-btn:hover { background: rgba(0,0,0,0.06); border-color: var(--ribbon-border); }
+
+/* ─── Ruler ─── */
+.ruler {
+  background: #f0f0f0;
+  border-bottom: 1px solid var(--ribbon-border);
+  height: 22px;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 260px;
+  overflow: hidden;
+}
+
+.ruler-marks {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: flex-end;
+  padding: 0 40px;
+}
+
+.ruler-mark {
+  flex: 1;
+  text-align: center;
+  font-size: 9px;
+  color: var(--text-muted);
+  border-left: 1px solid #ccc;
+  padding-bottom: 2px;
 }
 
 /* ─── Main Area ─── */
@@ -322,8 +427,21 @@ body {
   user-select: none;
 }
 
-.status-right {
+.status-left,
+.status-right-area {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-right-area {
   opacity: 0.7;
+}
+
+.status-separator::before {
+  content: "|";
+  margin: 0 6px;
+  opacity: 0.5;
 }
 
 /* ─── Loading / Error UI ─── */

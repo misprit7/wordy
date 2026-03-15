@@ -25,6 +25,25 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">X</a>
     </div>
+    <!-- SPA routing: restore path from 404.html redirect -->
+    <script>
+        (function () {
+            var redirect = sessionStorage.redirect;
+            delete sessionStorage.redirect;
+            if (redirect && redirect !== location.href) {
+                history.replaceState(null, null, redirect);
+            }
+        })();
+        var q = window.location.search;
+        if (q && q[1] === '/') {
+            var decoded = q.slice(2).split('&').map(function (s) { return s.replace(/~and~/g, '&'); });
+            var path = decoded[0];
+            var search = decoded.slice(1).join('&');
+            window.history.replaceState(null, null,
+                window.location.pathname + (path ? path : '') + (search ? '?' + search : '') + window.location.hash
+            );
+        }
+    </script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
 

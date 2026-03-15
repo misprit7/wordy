@@ -6,19 +6,30 @@
     <!-- Title Bar -->
     <div class="title-bar">
         <div class="title-bar-icon">W</div>
-        <div class="title-bar-text">Wordy Online Compiler</div>
+        <div class="quick-access">
+            <button class="qa-btn" title="Save">&#128190;</button>
+            <button class="qa-btn" title="Undo">&#8630;</button>
+            <button class="qa-btn" title="Redo">&#8631;</button>
+        </div>
+        <div class="title-bar-text">Wordy &mdash; Online Compiler</div>
         <div class="title-bar-buttons">
-            <button class="title-bar-btn">&#x2500;</button>
-            <button class="title-bar-btn">&#x25A1;</button>
-            <button class="title-bar-btn close">&#x2715;</button>
+            <button class="title-bar-btn">&#8211;</button>
+            <button class="title-bar-btn">&#9633;</button>
+            <button class="title-bar-btn close">&#10005;</button>
         </div>
     </div>
 
     <!-- Ribbon Tabs -->
     <div class="ribbon-tabs">
         <button class="ribbon-tab file-tab">File</button>
+        <button class="ribbon-tab @(activeTab == "home" ? "active" : "")" @onclick='() => activeTab = "home"'>Home</button>
         <button class="ribbon-tab @(activeTab == "compiler" ? "active" : "")" @onclick='() => activeTab = "compiler"'>Compiler</button>
-        <button class="ribbon-tab @(activeTab == "docs" ? "active" : "")" @onclick='() => activeTab = "docs"'>Documentation</button>
+        <button class="ribbon-tab">Insert</button>
+        <button class="ribbon-tab">Design</button>
+        <button class="ribbon-tab">Layout</button>
+        <button class="ribbon-tab">References</button>
+        <button class="ribbon-tab">Review</button>
+        <button class="ribbon-tab">View</button>
     </div>
 
     <!-- Ribbon Panel -->
@@ -33,7 +44,7 @@
                     </label>
                     <InputFile id="docxUpload" OnChange="HandleFileUpload" accept=".docx" style="display:none" />
                 </div>
-                <div class="ribbon-group-label">File</div>
+                <span class="ribbon-group-label">File</span>
             </div>
             <div class="ribbon-group">
                 <div class="ribbon-group-content">
@@ -42,7 +53,7 @@
                         <span>@(isCompiling ? "Running..." : "Run")</span>
                     </button>
                 </div>
-                <div class="ribbon-group-label">Execute</div>
+                <span class="ribbon-group-label">Execute</span>
             </div>
             <div class="ribbon-group">
                 <div class="ribbon-group-content file-info">
@@ -56,19 +67,87 @@
                         <span class="file-hint">No file uploaded</span>
                     }
                 </div>
-                <div class="ribbon-group-label">Document</div>
+                <span class="ribbon-group-label">Document</span>
             </div>
         }
         else
         {
+            <!-- Word-style formatting ribbon (decorative) -->
             <div class="ribbon-group">
                 <div class="ribbon-group-content">
-                    <span class="ribbon-hint">See the Wordy language reference below.</span>
+                    <div class="font-preview">
+                        <span style="font-family:'Courier New';font-size:13px;">Courier New</span>
+                        <span style="color:#999;font-size:10px;">&#9660;</span>
+                    </div>
+                    <div class="font-size-box">12</div>
                 </div>
-                <div class="ribbon-group-label">Help</div>
+                <div class="ribbon-group-content">
+                    <div class="format-buttons">
+                        <button class="fmt-btn" title="Bold = Bracket"><b>B</b></button>
+                        <button class="fmt-btn" title="Italic = String Literal"><i>I</i></button>
+                        <button class="fmt-btn" style="text-decoration:underline;" title="Underline">U</button>
+                        <button class="fmt-btn">x<sup style="font-size:8px;">2</sup></button>
+                        <button class="fmt-btn">x<sub style="font-size:8px;">2</sub></button>
+                    </div>
+                </div>
+                <span class="ribbon-group-label">Font = Types &amp; Casting</span>
+            </div>
+
+            <div class="ribbon-group">
+                <div class="ribbon-group-content">
+                    <div style="display:flex;flex-direction:column;gap:2px;">
+                        <button class="ribbon-btn ribbon-btn-sm"><span class="ribbon-btn-icon">&#8592;</span> Left</button>
+                        <button class="ribbon-btn ribbon-btn-sm"><span class="ribbon-btn-icon">&#8594;</span> Right = Return</button>
+                        <button class="ribbon-btn ribbon-btn-sm"><span class="ribbon-btn-icon">&#8596;</span> Center</button>
+                    </div>
+                </div>
+                <span class="ribbon-group-label">Paragraph</span>
+            </div>
+
+            <div class="ribbon-group">
+                <div class="ribbon-group-content">
+                    <button class="ribbon-btn">
+                        <span class="ribbon-btn-icon" style="font-size:18px;font-weight:700;">H1</span>
+                        <span>Heading</span>
+                    </button>
+                    <button class="ribbon-btn">
+                        <span class="ribbon-btn-icon" style="font-size:14px;color:var(--text-muted);">Subtitle</span>
+                        <span>Params</span>
+                    </button>
+                    <button class="ribbon-btn">
+                        <span class="ribbon-btn-icon" style="font-size:28px;line-height:0.8;">D</span>
+                        <span>Drop Cap</span>
+                    </button>
+                </div>
+                <span class="ribbon-group-label">Styles = Functions</span>
+            </div>
+
+            <div class="ribbon-group">
+                <div class="ribbon-group-content">
+                    <button class="ribbon-btn">
+                        <span class="ribbon-btn-icon">&#9638;</span>
+                        <span>Table</span>
+                    </button>
+                </div>
+                <span class="ribbon-group-label">Control Flow</span>
             </div>
         }
     </div>
+
+    @if (activeTab == "home")
+    {
+        <!-- Ruler -->
+        <div class="ruler">
+            <div class="ruler-marks">
+                <span class="ruler-mark">1</span><span class="ruler-mark">2</span>
+                <span class="ruler-mark">3</span><span class="ruler-mark">4</span>
+                <span class="ruler-mark">5</span><span class="ruler-mark">6</span>
+                <span class="ruler-mark">7</span><span class="ruler-mark">8</span>
+                <span class="ruler-mark">9</span><span class="ruler-mark">10</span>
+                <span class="ruler-mark">11</span><span class="ruler-mark">12</span>
+            </div>
+        </div>
+    }
 
     <!-- Main Content -->
     <div class="main-area">
@@ -108,14 +187,35 @@
         }
         else
         {
-            <iframe src="docs/index.html" class="docs-frame"></iframe>
+            <iframe src="docs/index.html?embedded=true" class="docs-frame"></iframe>
         }
     </div>
 
     <!-- Status Bar -->
     <div class="status-bar">
-        <span>@statusText</span>
-        <span class="status-right">Wordy Compiler v1.0</span>
+        <div class="status-left">
+            @if (activeTab == "compiler")
+            {
+                <span>@statusText</span>
+            }
+            else
+            {
+                <span>Page 1 of 1</span>
+                <span class="status-separator">Words: &infin;</span>
+                <span class="status-separator">English (United States)</span>
+            }
+        </div>
+        <div class="status-right-area">
+            @if (activeTab == "home")
+            {
+                <span>&#128196; Print Layout</span>
+                <span class="status-separator">100%</span>
+            }
+            else
+            {
+                <span>Wordy Compiler v1.0</span>
+            }
+        </div>
     </div>
 </div>
 

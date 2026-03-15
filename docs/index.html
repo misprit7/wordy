@@ -882,6 +882,15 @@ li { margin-bottom: 4px; }
   border-top: 1px solid var(--ribbon-border);
   margin: 30px 0;
 }
+
+/* Embedded mode: hide chrome when loaded in iframe */
+body.embedded .title-bar,
+body.embedded .ribbon-tabs,
+body.embedded .ribbon-panel,
+body.embedded .ruler,
+body.embedded .status-bar { display: none; }
+body.embedded { overflow: auto; }
+body.embedded .main-container { height: 100vh; }
 </style>
 </head>
 <body>
@@ -1712,6 +1721,11 @@ result <span class="op">&larr;</span> result <span class="op">&times;</span> n  
 </div>
 
 <script>
+// Embedded mode detection
+if (new URLSearchParams(window.location.search).has('embedded')) {
+  document.body.classList.add('embedded');
+}
+
 // Navigation
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => {
