@@ -20,6 +20,9 @@ if (args.Length >= 2 && args[0] == "--gen")
         case "scan":
             Wordy.Debug.DocxGenerator.GenerateScanTest(outPath);
             return 0;
+        case "wordle":
+            Wordy.Debug.DocxGenerator.GenerateWordle(outPath);
+            return 0;
         default:
             Console.Error.WriteLine($"Unknown generator: {args[1]}");
             return 1;

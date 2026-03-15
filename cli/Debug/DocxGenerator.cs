@@ -383,6 +383,164 @@ public static class DocxGenerator
         Console.WriteLine($"Generated: {path}");
     }
 
+    public static void GenerateWordle(string path)
+    {
+        using var doc = CreateDoc(path);
+        var body = doc.MainDocumentPart!.Document!.Body!;
+        var numPart = doc.MainDocumentPart!.AddNewPart<NumberingDefinitionsPart>();
+        numPart.Numbering = MakeNumberingDefinitions();
+
+        // ── Function 1: Match(A: char, B: char) → int ──
+        // Returns 1 if chars are equal, 0 otherwise
+        body.Append(MakeHeading("Match", "Courier New"));
+        body.Append(new Paragraph(
+            new ParagraphProperties(new ParagraphStyleId { Val = "Subtitle" }),
+            MakeRun("A ", "Symbol"),
+            MakeRun("B", "Symbol")));
+        body.Append(MakeIfTable(
+            condition: new[] { R("A = B") },
+            trueBranch: new[] { R("1") },
+            falseBranch: new[] { R("0") },
+            rightAlignBranches: true
+        ));
+        body.Append(new Paragraph());
+
+        // ── Function 2: Hint(Score: int) → string ──
+        // Returns "O" for correct, "." for miss
+        body.Append(MakeHeading("Hint", "Times New Roman"));
+        body.Append(MakeSubtitle("Score", "Courier New"));
+        body.Append(MakeMatchTable(
+            subject: new[] { R("Score") },
+            patterns: new[] { "1", "_" },
+            bodies: new Run[][] {
+                new[] { R("O", italic: true) },
+                new[] { R(".", italic: true) },
+            },
+            rightAlignBodies: true
+        ));
+        body.Append(new Paragraph());
+
+        // ── Entry point ──
+        // Drop cap "W" + "ord ←" → variable "Word ←" followed by list = array assignment
+        AppendDropCapRun(body, "W");
+        body.Append(MakeParagraph(R("ord ←")));
+
+        // Target word as char array (italic = string literal, Symbol font = char type)
+        foreach (var ch in "WORDY")
+            body.Append(MakeListParagraph(numId: 1, ilvl: 0, R(ch.ToString(), font: "Symbol", italic: true)));
+
+        // Print intro
+        body.Append(MakeGlowParagraph(new[] {
+            R("Guess the 5-letter word! You have 6 tries.", italic: true)
+        }));
+
+        // Won ← 0
+        body.Append(MakeParagraph(R("Won ← 0")));
+
+        // ── Main game loop (built manually for complex body) ──
+        var forTable = new Table();
+        forTable.Append(MakeTableProps(3));
+        var colW = 3000;
+        forTable.Append(new TableGrid(
+            new GridColumn { Width = colW.ToString() },
+            new GridColumn { Width = colW.ToString() },
+            new GridColumn { Width = colW.ToString() }));
+
+        // For header: Round ← 0 | Round < 6 ∧ Won = 0 | Round ← Round + 1
+        var headerRow = new TableRow();
+        headerRow.Append(MakeCellFromRuns(new[] { R("Round ← 0") }, widthTwips: colW));
+        headerRow.Append(MakeCellFromRuns(new[] { R("Round < 6 ∧ Won = 0") }, widthTwips: colW));
+        headerRow.Append(MakeCellFromRuns(new[] { R("Round ← Round + 1") }, widthTwips: colW));
+        forTable.Append(headerRow);
+
+        // For body: single merged cell with all game logic
+        var bodyRow = new TableRow();
+        var bodyCell = new TableCell();
+        bodyCell.Append(new TableCellProperties(
+            new TableCellWidth { Width = (colW * 3).ToString(), Type = TableWidthUnitValues.Dxa },
+            new GridSpan { Val = 3 }));
+
+        // Scan 5 guess characters + newline
+        string[] guessVars = { "A", "B", "C", "D", "E" };
+        foreach (var v in guessVars)
+            bodyCell.Append(MakeParagraph(R(v, font: "Symbol", reflection: true)));
+        bodyCell.Append(MakeParagraph(R("Nl", font: "Symbol", reflection: true)));
+
+        // Result ← hint(match(Word₀, A)) + hint(match(Word₁, B)) + ...
+        bodyCell.Append(MakeWordleResultAssignment(guessVars));
+
+        // Print Result (glow)
+        bodyCell.Append(MakeGlowParagraph(new[] { R("Result") }));
+
+        // Score ← match(Word₀, A) + match(Word₁, B) + ...
+        bodyCell.Append(MakeWordleScoreAssignment(guessVars));
+
+        // Nested if: Score = 5 → Won ← 1
+        bodyCell.Append(MakeIfTable(
+            condition: new[] { R("Score = 5") },
+            trueBranch: new[] { R("Won ← 1") },
+            falseBranch: Array.Empty<Run>(),
+            rightAlignBranches: false
+        ));
+
+        bodyRow.Append(bodyCell);
+        forTable.Append(bodyRow);
+        body.Append(forTable);
+
+        // After loop: win/lose message
+        body.Append(MakeIfTable(
+            condition: new[] { R("Won = 1") },
+            trueBranch: new[] { R("You got it!", italic: true, glow: true) },
+            falseBranch: new[] { R("The word was WORDY!", italic: true, glow: true) },
+            rightAlignBranches: false
+        ));
+
+        body.Append(new Paragraph());
+        Save(doc);
+        Console.WriteLine($"Generated: {path}");
+    }
+
+    /// <summary>
+    /// Builds: Result ← hint(match(Word₀, A)) + hint(match(Word₁, B)) + ...
+    /// Each hint(...) is a bold bracket, each match(...) is a nested highlight bracket.
+    /// </summary>
+    private static Paragraph MakeWordleResultAssignment(string[] guessVars)
+    {
+        var para = new Paragraph();
+        para.Append(R("Result ← "));
+        for (int i = 0; i < guessVars.Length; i++)
+        {
+            if (i > 0) para.Append(R(" + "));
+            // hint ( match Word₀ A )
+            // bold = outer bracket (hint call), highlight = inner bracket (match call)
+            para.Append(R("hint ", bold: true));
+            para.Append(R("match ", bold: true, highlight: HighlightColorValues.Yellow));
+            para.Append(R("Word", bold: true, highlight: HighlightColorValues.Yellow));
+            para.Append(R(i.ToString(), bold: true, highlight: HighlightColorValues.Yellow, subscript: true));
+            para.Append(R($" {guessVars[i]}", bold: true, highlight: HighlightColorValues.Yellow));
+        }
+        return para;
+    }
+
+    /// <summary>
+    /// Builds: Score ← match(Word₀, A) + match(Word₁, B) + ...
+    /// Each match(...) is a bold bracket.
+    /// </summary>
+    private static Paragraph MakeWordleScoreAssignment(string[] guessVars)
+    {
+        var para = new Paragraph();
+        para.Append(R("Score ← "));
+        for (int i = 0; i < guessVars.Length; i++)
+        {
+            if (i > 0) para.Append(R(" + "));
+            para.Append(R("match ", bold: true));
+            para.Append(R("Word", bold: true));
+            para.Append(R(i.ToString(), bold: true, subscript: true));
+            para.Append(R($" {guessVars[i]}", bold: true));
+        }
+        return para;
+    }
+
     // ── List / Numbering helpers ──
 
     private static Numbering MakeNumberingDefinitions()
@@ -515,6 +673,28 @@ public static class DocxGenerator
         var mainPart = doc.AddMainDocumentPart();
         mainPart.Document = new Document(new Body());
 
+        // Declare w14 namespace as ignorable so glow/reflection elements are valid
+        mainPart.Document.AddNamespaceDeclaration("mc",
+            "http://schemas.openxmlformats.org/markup-compatibility/2006");
+        mainPart.Document.AddNamespaceDeclaration("w14",
+            "http://schemas.microsoft.com/office/word/2010/wordml");
+        mainPart.Document.SetAttribute(new OpenXmlAttribute("mc", "Ignorable",
+            "http://schemas.openxmlformats.org/markup-compatibility/2006", "w14"));
+
+        // Set compatibility to Word 2013+ so w14 effects (glow, reflection) work
+        // and Word doesn't open the document in compatibility mode
+        var settingsPart = mainPart.AddNewPart<DocumentSettingsPart>();
+        settingsPart.Settings = new Settings(
+            new Compatibility(
+                new CompatibilitySetting
+                {
+                    Name = CompatSettingNameValues.CompatibilityMode,
+                    Uri = "http://schemas.microsoft.com/office/word",
+                    Val = "15"  // Word 2013+
+                }
+            )
+        );
+
         // Set Cambria Math as the document default font
         var stylesPart = mainPart.AddNewPart<StyleDefinitionsPart>();
         stylesPart.Styles = new Styles(
@@ -598,8 +778,11 @@ public static class DocxGenerator
             {
                 props.Append(new DocumentFormat.OpenXml.Office2010.Word.Glow
                 {
-                    GlowRadius = new DocumentFormat.OpenXml.Int64Value(63500L),
-                    RgbColorModelHex = new DocumentFormat.OpenXml.Office2010.Word.RgbColorModelHex { Val = "4472C4" }
+                    GlowRadius = new DocumentFormat.OpenXml.Int64Value(101600L),
+                    SchemeColor = new DocumentFormat.OpenXml.Office2010.Word.SchemeColor(
+                        new DocumentFormat.OpenXml.Office2010.Word.Alpha { Val = 60000 },
+                        new DocumentFormat.OpenXml.Office2010.Word.SaturationModulation { Val = 175000 }
+                    ) { Val = new DocumentFormat.OpenXml.Office2010.Word.SchemeColorValues("accent1") }
                 });
             }
             if (glowRun.RunProperties is null)
@@ -635,14 +818,14 @@ public static class DocxGenerator
     private static TableProperties MakeTableProps(int numCols)
     {
         return new TableProperties(
+            new TableWidth { Width = "0", Type = TableWidthUnitValues.Auto },
             new TableBorders(
                 new TopBorder { Val = BorderValues.Single, Size = 4, Space = 0, Color = "auto" },
-                new BottomBorder { Val = BorderValues.Single, Size = 4, Space = 0, Color = "auto" },
                 new LeftBorder { Val = BorderValues.Single, Size = 4, Space = 0, Color = "auto" },
+                new BottomBorder { Val = BorderValues.Single, Size = 4, Space = 0, Color = "auto" },
                 new RightBorder { Val = BorderValues.Single, Size = 4, Space = 0, Color = "auto" },
                 new InsideHorizontalBorder { Val = BorderValues.Single, Size = 4, Space = 0, Color = "auto" },
-                new InsideVerticalBorder { Val = BorderValues.Single, Size = 4, Space = 0, Color = "auto" }),
-            new TableWidth { Width = "0", Type = TableWidthUnitValues.Auto });
+                new InsideVerticalBorder { Val = BorderValues.Single, Size = 4, Space = 0, Color = "auto" }));
     }
 
     private static Table MakeIfTable(Run[] condition, Run[] trueBranch, Run[] falseBranch,
@@ -732,8 +915,8 @@ public static class DocxGenerator
         var bodyRow = new TableRow();
         var bodyCell = new TableCell();
         bodyCell.Append(new TableCellProperties(
-            new GridSpan { Val = 3 },
-            new TableCellWidth { Width = (colW * 3).ToString(), Type = TableWidthUnitValues.Dxa }));
+            new TableCellWidth { Width = (colW * 3).ToString(), Type = TableWidthUnitValues.Dxa },
+            new GridSpan { Val = 3 }));
         foreach (var runs in bodyParagraphs)
         {
             var para = new Paragraph();
@@ -854,11 +1037,12 @@ public static class DocxGenerator
     {
         var cell = new TableCell();
         var cellProps = new TableCellProperties();
-        if (gridSpan > 1)
-            cellProps.Append(new GridSpan { Val = gridSpan });
+        // tcW must come before gridSpan per OOXML schema
         if (widthTwips is not null)
             cellProps.Append(new TableCellWidth
                 { Width = widthTwips.Value.ToString(), Type = TableWidthUnitValues.Dxa });
+        if (gridSpan > 1)
+            cellProps.Append(new GridSpan { Val = gridSpan });
         cell.Append(cellProps);
 
         var para = new Paragraph();
@@ -894,8 +1078,11 @@ public static class DocxGenerator
         if (glow)
             props.Append(new DocumentFormat.OpenXml.Office2010.Word.Glow
             {
-                GlowRadius = new DocumentFormat.OpenXml.Int64Value(63500L),
-                RgbColorModelHex = new DocumentFormat.OpenXml.Office2010.Word.RgbColorModelHex { Val = "4472C4" }
+                GlowRadius = new DocumentFormat.OpenXml.Int64Value(101600L),
+                SchemeColor = new DocumentFormat.OpenXml.Office2010.Word.SchemeColor(
+                    new DocumentFormat.OpenXml.Office2010.Word.Alpha { Val = 60000 },
+                    new DocumentFormat.OpenXml.Office2010.Word.SaturationModulation { Val = 175000 }
+                ) { Val = new DocumentFormat.OpenXml.Office2010.Word.SchemeColorValues("accent1") }
             });
         if (reflection)
             props.Append(new DocumentFormat.OpenXml.Office2010.Word.Reflection

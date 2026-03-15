@@ -271,12 +271,20 @@ public static class Parser
         }
 
         // Glow formatting = print (alternative to print function call)
+        // If any runs have glow, the entire paragraph is a print statement.
+        // The glow content is parsed as if inside an implicit bracket (enabling
+        // OCaml-style juxtaposition for function calls without explicit bold).
         if (para.Runs.Any(r => r.Glow))
         {
-            var glowRuns = para.Runs.Where(r => r.Glow).ToList();
-            var expr = ParseExpression(glowRuns);
-            if (expr is not null)
-                return new PrintStmt(expr);
+            var tokens = Tokenize(para.Runs);
+            if (tokens.Count > 0)
+            {
+                var pos = 0;
+                // Try bracket-content parsing (juxtaposition = function call)
+                var expr = ParseBracketContent(tokens, ref pos);
+                if (expr is not null)
+                    return new PrintStmt(expr);
+            }
         }
 
         // Try to parse as expression, then check for print

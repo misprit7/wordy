@@ -23,6 +23,7 @@ jobs:
         run: |
           dotnet run --project cli -- --gen fibonacci docx/generated/Fibonacci.docx
           dotnet run --project cli -- --gen comprehensive docx/generated/Comprehensive.docx
+          dotnet run --project cli -- --gen scan docx/generated/Scan.docx
 
       - name: Test Factorial
         run: |
@@ -117,3 +118,15 @@ jobs:
             exit 1
           fi
           echo "PASS: Comprehensive"
+
+      - name: Test Scan
+        run: |
+          output=$(echo "X" | dotnet run --project cli -- docx/generated/Scan.docx)
+          expected="X"
+          if [ "$output" != "$expected" ]; then
+            echo "FAIL: Scan"
+            echo "Expected: $expected"
+            echo "Got: $output"
+            exit 1
+          fi
+          echo "PASS: Scan -> $output"

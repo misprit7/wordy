@@ -286,7 +286,11 @@ public static class CSharpEmitter
                 for (int i = 0; i < arr.Elements.Count; i++)
                 {
                     if (i > 0) sb.Append(", ");
-                    EmitExpr(sb, arr.Elements[i]);
+                    // Char arrays: emit single-char string literals as char literals
+                    if (arr.ElementType == WordyType.Char && arr.Elements[i] is StringLiteral sl && sl.Value.Length == 1)
+                        sb.Append($"'{sl.Value}'");
+                    else
+                        EmitExpr(sb, arr.Elements[i]);
                 }
                 sb.Append('}');
                 break;
