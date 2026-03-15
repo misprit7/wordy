@@ -60,6 +60,7 @@ jobs:
           17
           Fizz
           19
+          120
           EOF
           if [ "$output" != "$expected" ]; then
             echo "FAIL: FizzBuzz"
