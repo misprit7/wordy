@@ -26,31 +26,13 @@ The compiler is written in C# (.NET 8) using the [Open XML SDK](https://learn.mi
 ## Usage
 
 ```bash
-cd src
-dotnet run -- <file.docx>           # compile and run
-dotnet run -- <file.docx> --emit    # print generated C# without running
-dotnet run -- <file.docx> --dump-ir # print the document's intermediate representation
-dotnet run -- <file.docx> --dump-raw # print raw OpenXML structure
+dotnet run --project cli -- <file.docx>             # compile and run
+dotnet run --project cli -- <file.docx> --emit      # print generated C# without running
+dotnet run --project cli -- <file.docx> --dump-ir   # print the document's intermediate representation
+dotnet run --project cli -- <file.docx> --dump-raw  # print raw OpenXML structure
 ```
 
-## Project Structure
-
-```
-src/
-├── Program.cs              # CLI entry point
-├── Reader/
-│   ├── DocumentIR.cs       # Formatting-aware intermediate representation
-│   └── DocumentReader.cs   # .docx → IR using OpenXML
-├── Ast/
-│   ├── Ast.cs              # AST node definitions
-│   └── Parser.cs           # IR → AST (formatting brackets, tables, fonts)
-├── CodeGen/
-│   ├── CSharpEmitter.cs    # AST → C# source code
-│   └── Compiler.cs         # Roslyn compilation and execution
-└── Debug/
-    ├── DumpIR.cs            # IR debug printer
-    └── RawDump.cs           # Raw OpenXML debug printer
-```
+Or try it in the browser at [xander.naumenko.com/wordy](https://xander.naumenko.com/wordy/).
 
 See [SPEC.md](SPEC.md) for the language specification and [docs/index.html](docs/index.html) for the full reference.
 

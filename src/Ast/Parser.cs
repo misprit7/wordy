@@ -29,7 +29,11 @@ public static class Parser
             }
         }
 
-        return new Program(functions);
+        var imports = document.Imports
+            .Select(i => new Import(i.Tag, i.FileName))
+            .ToList();
+
+        return new Program(functions, imports);
     }
 
     // --- Document structure parsing ---

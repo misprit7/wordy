@@ -6,6 +6,14 @@ public static class DumpIR
 {
     public static void Dump(DocumentIR doc, int indent = 0)
     {
+        if (doc.Imports.Count > 0)
+        {
+            Console.WriteLine("Imports:");
+            foreach (var import in doc.Imports)
+                Console.WriteLine($"  [{import.Tag}] → {import.FileName}.docx");
+            Console.WriteLine();
+        }
+
         foreach (var element in doc.Elements)
         {
             DumpElement(element, indent);

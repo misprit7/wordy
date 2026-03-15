@@ -670,6 +670,12 @@ li { margin-bottom: 4px; }
         <a class="nav-item sub" data-target="if-stmt">If Statements</a>
         <a class="nav-item sub" data-target="match-stmt">Match Statements</a>
         <a class="nav-item sub" data-target="for-loop">For Loops</a>
+        <a class="nav-item" data-target="arrays">Arrays</a>
+        <a class="nav-item sub" data-target="array-literals">Array Literals</a>
+        <a class="nav-item sub" data-target="array-access">Array Access</a>
+        <a class="nav-item" data-target="imports">Imports</a>
+        <a class="nav-item sub" data-target="bibliography">Bibliography Sources</a>
+        <a class="nav-item sub" data-target="citations">Citations</a>
       </div>
       <div class="nav-section">
         <div class="nav-section-title">Statements</div>
@@ -1266,6 +1272,185 @@ result <span class="op">&larr;</span> result <span class="op">&times;</span> n  
         </div>
       </section>
 
+      <!-- Arrays -->
+      <section id="arrays">
+        <h2>Arrays</h2>
+        <p>
+          Arrays in Wordy are defined using <strong>numbered lists</strong> in Word and accessed using
+          <strong>subscript</strong> formatting. The element type is determined by the font of the list items,
+          following the same type system used elsewhere.
+        </p>
+      </section>
+
+      <!-- Array Literals -->
+      <section id="array-literals">
+        <h3>Array Literals (Numbered Lists)</h3>
+        <p>
+          A <strong>numbered list</strong> (Insert &rarr; Numbering) defines an array literal. Each list item
+          becomes an element of the array. The font of the list items determines the element type.
+        </p>
+
+        <h4>1D Arrays</h4>
+        <p>
+          A flat numbered list where each item is a value. The font of the items determines the array type.
+        </p>
+
+        <div class="fmt-example">
+          <div class="fmt-visual" style="text-align:left;font-family:'Courier New',monospace;font-size:14px;min-width:120px;">
+            <div>1. 2</div>
+            <div>2. 3</div>
+            <div>3. 5</div>
+            <div>4. 7</div>
+            <div>5. 11</div>
+          </div>
+          <div>
+            <div class="fmt-desc">Numbered list with items in <strong>Courier New</strong> font</div>
+            <div class="fmt-result"><code>new int[] {2, 3, 5, 7, 11}</code></div>
+          </div>
+        </div>
+
+        <h4>2D Arrays</h4>
+        <p>
+          A nested numbered list creates a two-dimensional array. Top-level items are blank (acting as row
+          separators), and sub-items at indent level 1 are the values.
+        </p>
+
+        <div class="fmt-example">
+          <div class="fmt-visual" style="text-align:left;font-family:'Courier New',monospace;font-size:13px;min-width:160px;">
+            <div>1. &nbsp;</div>
+            <div style="padding-left:20px;">a. 1 &nbsp; b. 2 &nbsp; c. 3</div>
+            <div>2. &nbsp;</div>
+            <div style="padding-left:20px;">a. 4 &nbsp; b. 5 &nbsp; c. 6</div>
+          </div>
+          <div>
+            <div class="fmt-desc">Nested numbered list &mdash; blank top items, sub-items are values</div>
+            <div class="fmt-result"><code>new int[,] {{1, 2, 3}, {4, 5, 6}}</code></div>
+          </div>
+        </div>
+
+        <h4>Array Assignment</h4>
+        <p>
+          To assign an array to a variable, write the variable name followed by <code>&larr;</code> on one line,
+          then place the numbered list on the subsequent lines.
+        </p>
+
+        <div class="code-block">
+          <span class="code-label">Wordy</span>
+primes <span class="op">&larr;</span>
+  <span class="num">1.</span> <span class="num">2</span>
+  <span class="num">2.</span> <span class="num">3</span>
+  <span class="num">3.</span> <span class="num">5</span>          <span class="cm">&larr; assigns new int[] {2, 3, 5} to primes</span>
+        </div>
+      </section>
+
+      <!-- Array Access -->
+      <section id="array-access">
+        <h3>Array Access (Subscript)</h3>
+        <p>
+          <strong>Subscript</strong> text after an array name is used for index access. Write the array name
+          in normal text, then the index expression in subscript formatting.
+        </p>
+
+        <div class="fmt-example">
+          <div class="fmt-visual">
+            arr<sub>i</sub>
+          </div>
+          <div>
+            <div class="fmt-desc">Array name followed by subscript index</div>
+            <div class="fmt-result"><code>arr[i]</code></div>
+          </div>
+        </div>
+
+        <h4>Multidimensional Access</h4>
+        <p>
+          For multidimensional arrays, use comma-separated indices in the subscript text.
+        </p>
+
+        <div class="fmt-example">
+          <div class="fmt-visual">
+            matrix<sub>i,j</sub>
+          </div>
+          <div>
+            <div class="fmt-desc">Comma-separated subscript indices</div>
+            <div class="fmt-result"><code>matrix[i, j]</code></div>
+          </div>
+        </div>
+
+        <div class="callout tip">
+          <div class="callout-title">Inside Brackets</div>
+          Array access works inside formatting brackets. For example, you can pass an array element as a function argument by placing the subscript expression inside a bold bracket.
+        </div>
+      </section>
+
+      <!-- Imports -->
+      <section id="imports">
+        <h2>Imports (Bibliography &amp; Citations)</h2>
+        <p>
+          Wordy uses Word's <strong>bibliography</strong> and <strong>citation</strong> system for importing
+          functions from other <code>.docx</code> files. Each bibliography entry represents an imported module,
+          and citations in the document body call functions from those modules.
+        </p>
+      </section>
+
+      <!-- Bibliography Sources -->
+      <section id="bibliography">
+        <h3>Bibliography Sources (Module Imports)</h3>
+        <p>
+          To import another Wordy file, add a <strong>bibliography source</strong> (References &rarr; Manage Sources)
+          in Word. The <strong>Title</strong> field of the bibliography entry is the filename of the
+          <code>.docx</code> file to import (without the extension).
+        </p>
+
+        <div class="fmt-example">
+          <div class="fmt-visual" style="font-size:13px;min-width:140px;">
+            <div style="border:1px solid #ccc;padding:6px 10px;border-radius:3px;">
+              <div style="font-size:11px;color:var(--text-muted);">Source Title:</div>
+              <div><strong>Factorial</strong></div>
+            </div>
+          </div>
+          <div>
+            <div class="fmt-desc">Bibliography source with Title = "Factorial"</div>
+            <div class="fmt-result">Imports <code>Factorial.docx</code> from the same directory</div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">Resolution</div>
+          The compiler looks for imported <code>.docx</code> files in the same directory as the main file.
+          Imports are resolved recursively &mdash; imported files can have their own imports.
+        </div>
+      </section>
+
+      <!-- Citations -->
+      <section id="citations">
+        <h3>Citations (Function Calls)</h3>
+        <p>
+          To call a function from an imported module, use Word's <strong>citation</strong> feature
+          (References &rarr; Insert Citation). The citation references a bibliography source, and the
+          <code>\p</code> (page) field specifies the function name being called.
+        </p>
+        <p>
+          Citations appear inline in the document and work like any other function name. They can be placed
+          inside formatting brackets to pass arguments, just like regular function calls.
+        </p>
+
+        <div class="fmt-example">
+          <div class="fmt-visual" style="font-size:13px;min-width:180px;">
+            <span style="color:var(--accent);">[Factorial, p. Factorial]</span> <span style="background:#ffff00;padding:0 3px;">5</span>
+          </div>
+          <div>
+            <div class="fmt-desc">Citation referencing Factorial source, page field = "Factorial", with argument in highlight bracket</div>
+            <div class="fmt-result"><code>Factorial(5)</code> &mdash; calls the Factorial function from Factorial.docx</div>
+          </div>
+        </div>
+
+        <div class="callout tip">
+          <div class="callout-title">How It Works</div>
+          The citation's page field becomes the function name. Wrap arguments in a formatting bracket (bold or highlight)
+          after the citation, just as you would for any other function call in Wordy.
+        </div>
+      </section>
+
     </div>
 
     <div class="document-paper">
@@ -1301,6 +1486,7 @@ result <span class="op">&larr;</span> result <span class="op">&times;</span> n  
           <tr><td>Font Change on Expression</td><td>Type casting</td><td><span class="badge implemented">Implemented</span></td></tr>
           <tr><td>Superscript</td><td>Exponentiation</td><td><span class="badge implemented">Implemented</span></td></tr>
           <tr><td>Subscript</td><td>Array/index access</td><td><span class="badge implemented">Implemented</span></td></tr>
+          <tr><td>Numbered Lists</td><td>Array literals (1D and 2D)</td><td><span class="badge implemented">Implemented</span></td></tr>
           <tr><td>Tables</td><td>Control flow (if/match/for)</td><td><span class="badge implemented">Implemented</span></td></tr>
           <tr><td>Arrow symbol (&larr;)</td><td>Assignment</td><td><span class="badge implemented">Implemented</span></td></tr>
           <tr><td>Small Caps</td><td>Constants</td><td><span class="badge partial">Recognized</span></td></tr>
@@ -1313,7 +1499,7 @@ result <span class="op">&larr;</span> result <span class="op">&times;</span> n  
           <tr><td>Cross-references</td><td>Pointers</td><td><span class="badge planned">Planned</span></td></tr>
           <tr><td>Bookmarks</td><td>Named references</td><td><span class="badge planned">Planned</span></td></tr>
           <tr><td>Mail Merge Fields</td><td>Generics / templates</td><td><span class="badge planned">Planned</span></td></tr>
-          <tr><td>Bibliography</td><td>Imports / dependencies</td><td><span class="badge planned">Planned</span></td></tr>
+          <tr><td>Bibliography / Citations</td><td>Imports / dependencies</td><td><span class="badge implemented">Implemented</span></td></tr>
           <tr><td>Track Changes</td><td>Mutation visibility</td><td><span class="badge planned">Planned</span></td></tr>
           <tr><td>Center Alignment</td><td>Assertions</td><td><span class="badge planned">Planned</span></td></tr>
           <tr><td>Line Spacing</td><td>Delays</td><td><span class="badge planned">Planned</span></td></tr>

@@ -57,7 +57,14 @@ if (dumpIR)
 // Phase 2: Parse IR into AST
 var program = Parser.Parse(document);
 
-// Phase 3: Transpile AST to C#
+// Phase 3: Resolve imports — find and compile imported .docx files
+var baseDir = Path.GetDirectoryName(Path.GetFullPath(path)) ?? ".";
+var resolved = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+var allFunctions = new List<Function>(program.Functions);
+ResolveImports(program.Imports, baseDir, resolved, allFunctions);
+program = new Wordy.Ast.Program(allFunctions, program.Imports);
+
+// Phase 4: Transpile AST to C#
 var csharp = CSharpEmitter.Emit(program);
 
 var emitOnly = args.Contains("--emit");
@@ -68,5 +75,36 @@ if (emitOnly)
     return 0;
 }
 
-// Phase 4: Compile and run
+// Phase 5: Compile and run
 return Wordy.CodeGen.Compiler.CompileAndRun(csharp);
+
+static void ResolveImports(List<Import> imports, string baseDir,
+    HashSet<string> resolved, List<Function> allFunctions)
+{
+    foreach (var import in imports)
+    {
+        var fileName = import.FileName + ".docx";
+        if (resolved.Contains(fileName)) continue;
+        resolved.Add(fileName);
+
+        var importPath = Path.Combine(baseDir, fileName);
+        if (!File.Exists(importPath))
+        {
+            Console.Error.WriteLine($"Warning: imported file not found: {importPath}");
+            continue;
+        }
+
+        var importDoc = DocumentReader.Read(importPath);
+        var importProgram = Parser.Parse(importDoc);
+
+        // Add non-entry-point functions from the imported file
+        foreach (var func in importProgram.Functions)
+        {
+            if (!func.IsEntryPoint)
+                allFunctions.Add(func);
+        }
+
+        // Recursively resolve the imported file's own imports
+        ResolveImports(importProgram.Imports, baseDir, resolved, allFunctions);
+    }
+}

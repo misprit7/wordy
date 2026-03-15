@@ -63,7 +63,11 @@ public class WordyCompiler
         _references = refs;
     }
 
-    public async Task<CompilationResult> CompileAndRunAsync(Stream docxStream)
+    /// <summary>
+    /// Compile and run multiple .docx files. The main file is the entry point;
+    /// imported files provide additional functions that get merged into the main program.
+    /// </summary>
+    public async Task<CompilationResult> CompileAndRunAsync(Dictionary<string, Stream> files, string mainFileName)
     {
         try
         {
@@ -76,14 +80,34 @@ public class WordyCompiler
 
         try
         {
-            // Phase 1: Read .docx into document IR
-            var document = DocumentReader.Read(docxStream);
+            // Parse all files into AST programs
+            var programs = new Dictionary<string, Wordy.Ast.Program>();
+            foreach (var (name, stream) in files)
+            {
+                var document = DocumentReader.Read(stream);
+                var program = Parser.Parse(document);
+                programs[name] = program;
+            }
 
-            // Phase 2: Parse IR into AST
-            var program = Parser.Parse(document);
+            // Get the main program
+            if (!programs.TryGetValue(mainFileName, out var mainProgram))
+                return new CompilationResult(null, null, $"Main file '{mainFileName}' not found in uploaded files.", false);
+
+            // Merge functions from imported files into the main program
+            if (programs.Count > 1)
+            {
+                var allFunctions = new List<Function>(mainProgram.Functions);
+                foreach (var (name, program) in programs)
+                {
+                    if (name == mainFileName) continue;
+                    // Add all non-entry-point functions from imported files
+                    allFunctions.AddRange(program.Functions.Where(f => !f.IsEntryPoint));
+                }
+                mainProgram = new Wordy.Ast.Program(allFunctions, mainProgram.Imports);
+            }
 
             // Phase 3: Transpile AST to C#
-            var csharpSource = CSharpEmitter.Emit(program);
+            var csharpSource = CSharpEmitter.Emit(mainProgram);
 
             // Phase 4: Compile with Roslyn
             var syntaxTree = CSharpSyntaxTree.ParseText(csharpSource);
@@ -142,5 +166,14 @@ public class WordyCompiler
         {
             return new CompilationResult(null, null, ex.Message, false);
         }
+    }
+
+    /// <summary>
+    /// Single-file overload for backward compatibility.
+    /// </summary>
+    public Task<CompilationResult> CompileAndRunAsync(Stream docxStream)
+    {
+        var files = new Dictionary<string, Stream> { ["main.docx"] = docxStream };
+        return CompileAndRunAsync(files, "main.docx");
     }
 }

@@ -37,7 +37,7 @@
                         <span class="ribbon-btn-icon">&#x1F4C4;</span>
                         <span>Upload<br/>.docx</span>
                     </label>
-                    <InputFile id="docxUpload" OnChange="HandleFileUpload" accept=".docx" style="display:none" />
+                    <InputFile id="docxUpload" OnChange="HandleFileUpload" accept=".docx" multiple style="display:none" />
                     <div class="ribbon-separator"></div>
                     <div class="example-dropdown">
                         <select @onchange="LoadExample" class="example-select">
@@ -50,10 +50,14 @@
                     </div>
                 </div>
                 <div class="ribbon-group-content loaded-file-indicator">
-                    @if (loadedDocxName != null)
+                    @if (uploadedFiles.Count > 0)
                     {
                         <span class="loaded-file-icon">&#x1F4C4;</span>
-                        <span class="file-name">@loadedDocxName</span>
+                        <span class="file-name">@mainFileName</span>
+                        @if (uploadedFiles.Count > 1)
+                        {
+                            <span class="file-hint">+ @(uploadedFiles.Count - 1) import@(uploadedFiles.Count - 1 == 1 ? "" : "s")</span>
+                        }
                     }
                     else
                     {
@@ -62,9 +66,38 @@
                 </div>
                 <span class="ribbon-group-label">File</span>
             </div>
+            @if (uploadedFiles.Count > 1)
+            {
+                <div class="ribbon-group">
+                    <div class="ribbon-group-content">
+                        <div class="file-list-panel">
+                            <div class="file-list-header">
+                                <span class="file-list-label">Main file:</span>
+                                <select @onchange="ChangeMainFile" class="main-file-select">
+                                    @foreach (var name in uploadedFiles.Keys.OrderBy(n => n))
+                                    {
+                                        <option value="@name" selected="@(name == mainFileName)">@name</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="file-chips">
+                                @foreach (var name in uploadedFiles.Keys.OrderBy(n => n))
+                                {
+                                    <span class="file-chip @(name == mainFileName ? "file-chip-main" : "")">
+                                        <span class="file-chip-icon">@(name == mainFileName ? "\u2B50" : "\uD83D\uDCC4")</span>
+                                        @name
+                                        <button class="file-chip-remove" @onclick="() => RemoveFile(name)" title="Remove">&#10005;</button>
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <span class="ribbon-group-label">Files (@uploadedFiles.Count)</span>
+                </div>
+            }
             <div class="ribbon-group">
                 <div class="ribbon-group-content">
-                    <button class="ribbon-btn @(isCompiling ? "disabled" : "")" @onclick="RunCompiler" disabled="@(loadedDocx == null || isCompiling)">
+                    <button class="ribbon-btn @(isCompiling ? "disabled" : "")" @onclick="RunCompiler" disabled="@(uploadedFiles.Count == 0 || isCompiling)">
                         <span class="ribbon-btn-icon">&#x25B6;</span>
                         <span>@(isCompiling ? "Running..." : "Run")</span>
                     </button>
@@ -168,7 +201,7 @@
                 <div class="compiler-page">
                     <div class="page-title">Document Preview <span class="page-title-disclaimer" title="This preview is rendered client-side using the docx-preview JavaScript library, not Microsoft Word's rendering engine. Formatting, fonts, and layout may differ from how the document appears in Word. For accurate editing and viewing, open the .docx file in Microsoft Word.">(approximate rendering)</span></div>
                     <div class="page-preview">
-                        <div class="preview-placeholder" style="@(loadedDocx != null ? "display:none" : "")">Upload a .docx to preview</div>
+                        <div class="preview-placeholder" style="@(uploadedFiles.Count > 0 ? "display:none" : "")">Upload a .docx to preview</div>
                         <div id="docx-preview"></div>
                     </div>
                 </div>
@@ -234,9 +267,8 @@
 
 @code {
     private string activeTab = "compiler";
-    private IBrowserFile? uploadedFile;
-    private byte[]? loadedDocx;
-    private string? loadedDocxName;
+    private Dictionary<string, byte[]> uploadedFiles = new();
+    private string? mainFileName;
     private CompilationResult? result;
     private bool isCompiling;
     private string statusText = "Ready";
@@ -245,21 +277,31 @@
 
     private async Task HandleFileUpload(InputFileChangeEventArgs e)
     {
-        uploadedFile = e.File;
         result = null;
 
-        using var stream = uploadedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-        using var ms = new MemoryStream();
-        await stream.CopyToAsync(ms);
-        loadedDocx = ms.ToArray();
-        loadedDocxName = uploadedFile.Name;
-        statusText = $"Loaded: {loadedDocxName}";
+        foreach (var file in e.GetMultipleFiles(maximumFileCount: 20))
+        {
+            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            uploadedFiles[file.Name] = ms.ToArray();
+        }
+
+        // Set the main file to the first uploaded file if not already set,
+        // or if the current main file was removed
+        if (mainFileName == null || !uploadedFiles.ContainsKey(mainFileName))
+        {
+            mainFileName = uploadedFiles.Keys.First();
+        }
+
+        statusText = uploadedFiles.Count == 1
+            ? $"Loaded: {mainFileName}"
+            : $"Loaded {uploadedFiles.Count} files (main: {mainFileName})";
         StateHasChanged();
         await Task.Yield();
 
-        // Render docx preview
-        var base64 = Convert.ToBase64String(loadedDocx);
-        await JS.InvokeVoidAsync("renderDocxPreview", "docx-preview", base64);
+        // Render docx preview of the main file
+        await RenderMainPreview();
     }
 
     private async Task LoadExample(ChangeEventArgs e)
@@ -269,17 +311,17 @@
 
         try
         {
-            loadedDocx = await Http.GetByteArrayAsync($"examples/{name}.docx");
-            loadedDocxName = $"{name}.docx";
-            uploadedFile = null;
+            var bytes = await Http.GetByteArrayAsync($"examples/{name}.docx");
+            var fileName = $"{name}.docx";
+            uploadedFiles.Clear();
+            uploadedFiles[fileName] = bytes;
+            mainFileName = fileName;
             result = null;
-            statusText = $"Loaded example: {loadedDocxName}";
+            statusText = $"Loaded example: {mainFileName}";
             StateHasChanged();
             await Task.Yield();
 
-            // Render docx preview
-            var base64 = Convert.ToBase64String(loadedDocx);
-            await JS.InvokeVoidAsync("renderDocxPreview", "docx-preview", base64);
+            await RenderMainPreview();
         }
         catch (Exception ex)
         {
@@ -287,9 +329,55 @@
         }
     }
 
+    private async Task RenderMainPreview()
+    {
+        if (mainFileName != null && uploadedFiles.TryGetValue(mainFileName, out var bytes))
+        {
+            var base64 = Convert.ToBase64String(bytes);
+            await JS.InvokeVoidAsync("renderDocxPreview", "docx-preview", base64);
+        }
+    }
+
+    private async Task ChangeMainFile(ChangeEventArgs e)
+    {
+        var name = e.Value?.ToString();
+        if (string.IsNullOrEmpty(name) || !uploadedFiles.ContainsKey(name)) return;
+
+        mainFileName = name;
+        statusText = $"Main file: {mainFileName} ({uploadedFiles.Count} files loaded)";
+        StateHasChanged();
+        await Task.Yield();
+
+        await RenderMainPreview();
+    }
+
+    private async Task RemoveFile(string name)
+    {
+        uploadedFiles.Remove(name);
+
+        if (uploadedFiles.Count == 0)
+        {
+            mainFileName = null;
+            result = null;
+            statusText = "Ready";
+        }
+        else if (name == mainFileName)
+        {
+            mainFileName = uploadedFiles.Keys.First();
+            statusText = $"Main file: {mainFileName} ({uploadedFiles.Count} files loaded)";
+            await RenderMainPreview();
+        }
+        else
+        {
+            statusText = uploadedFiles.Count == 1
+                ? $"Loaded: {mainFileName}"
+                : $"Main file: {mainFileName} ({uploadedFiles.Count} files loaded)";
+        }
+    }
+
     private async Task RunCompiler()
     {
-        if (loadedDocx == null || isCompiling) return;
+        if (uploadedFiles.Count == 0 || mainFileName == null || isCompiling) return;
 
         isCompiling = true;
         result = null;
@@ -298,8 +386,22 @@
 
         await Task.Yield(); // Let UI update
 
-        using var ms = new MemoryStream(loadedDocx);
-        result = await Compiler.CompileAndRunAsync(ms);
+        var streams = new Dictionary<string, Stream>();
+        foreach (var (name, bytes) in uploadedFiles)
+        {
+            streams[name] = new MemoryStream(bytes);
+        }
+
+        try
+        {
+            result = await Compiler.CompileAndRunAsync(streams, mainFileName);
+        }
+        finally
+        {
+            foreach (var s in streams.Values)
+                s.Dispose();
+        }
+
         isCompiling = false;
         statusText = result.Success ? "Compiled and executed successfully" : "Compilation failed";
     }

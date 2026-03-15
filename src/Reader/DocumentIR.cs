@@ -1,6 +1,8 @@
 namespace Wordy.Reader;
 
-public record DocumentIR(List<DocumentElement> Elements);
+public record DocumentIR(List<DocumentElement> Elements, List<ImportInfo> Imports);
+
+public record ImportInfo(string Tag, string FileName);
 
 public abstract record DocumentElement;
 

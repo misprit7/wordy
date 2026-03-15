@@ -108,4 +108,6 @@ public record Function(
     bool IsEntryPoint
 );
 
-public record Program(List<Function> Functions);
+public record Import(string Tag, string FileName);
+
+public record Program(List<Function> Functions, List<Import> Imports);

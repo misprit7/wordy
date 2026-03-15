@@ -18,6 +18,19 @@
     <ProjectReference Include="../src/wordy.csproj" />
   </ItemGroup>
 
+  <!-- Copy .docx examples from top-level docx/ folder into wwwroot/examples/ at build time.
+       This keeps docx/ as the single source of truth for all example files. -->
+  <Target Name="CopyDocxExamples" BeforeTargets="Build;Publish">
+    <ItemGroup>
+      <_DocxExample Include="../docx/manual/*.docx" Exclude="../docx/manual/~$*" />
+      <_DocxExample Include="../docx/generated/*.docx" Exclude="../docx/generated/~$*" />
+    </ItemGroup>
+    <MakeDir Directories="wwwroot/examples" />
+    <Copy SourceFiles="@(_DocxExample)"
+          DestinationFolder="wwwroot/examples"
+          SkipUnchangedFiles="true" />
+  </Target>
+
   <!-- Copy WASM runtime DLLs to wwwroot/lib/ for Roslyn in-browser compilation.
        Resolves the browser-wasm runtime pack path from the SDK's known location. -->
   <Target Name="CopyWasmRoslynLibs" BeforeTargets="Build;Publish">

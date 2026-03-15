@@ -91,6 +91,17 @@ Formatting nesting represents parentheses. Applying a format opens a bracket, en
 - Array assignment: `variable ←` paragraph followed by a numbered list = assign array literal to variable. Works with drop cap entry points too.
 - Inside formatting brackets, subscript after an identifier is parsed as array access, not as a function call argument.
 
+### Imports (Bibliography/Citations)
+- Word's **bibliography** system = imports. Each bibliography entry = one imported module.
+- **Title** field = filename of the .docx to import (without extension).
+- Use Word's **citation** feature (References → Insert Citation) to reference an imported function inline.
+- The citation's **page field** (`\p`) = the function name being called.
+- Citations are read as synthetic runs with the function name text, preserving formatting (highlight, bold, etc.) so they work inside formatting brackets for function calls with arguments.
+- Example: `print` [highlight] citation(`\p Factorial`) ` 5` [/highlight] → `Console.WriteLine(Factorial(5))`
+- The compiler resolves imports by looking for `.docx` files in the same directory as the main file.
+- Imports are resolved recursively (imported files can have their own imports).
+- The "Works Cited" SDT block at the end of the document is ignored by the parser.
+
 ### Other syntax
 - **Right-aligned** text = return value.
 - **`print`** = built-in function (call like any function, emits `Console.WriteLine`).
@@ -137,7 +148,7 @@ dotnet run -- --gen arrays out.docx          # generate array features test
 
 ## What's implemented
 
-Functions, multi-arg parameters, return (right-align), if/match/for, assignment (←), reassignment, unary negation, arithmetic (× ÷ − + %), exponentiation (superscript), logical (∨ ∧), comparison (= < > <= >= !=), formatting brackets (bold, highlight), multi-arg function calls (OCaml-style juxtaposition), font-based types and casting (per-token and expression-level), italic string literals, drop cap entry point (void return), print built-in, match wildcards (_), comma-separated match patterns, nested control flow in tables (if inside for, for inside if), arrays (1D and 2D literals via numbered lists, subscript array access, multidimensional subscript with comma separation), programmatic .docx generation for tests, Roslyn compilation. No dynamic types — all variables must have explicit type fonts.
+Functions, multi-arg parameters, return (right-align), if/match/for, assignment (←), reassignment, unary negation, arithmetic (× ÷ − + %), exponentiation (superscript), logical (∨ ∧), comparison (= < > <= >= !=), formatting brackets (bold, highlight), multi-arg function calls (OCaml-style juxtaposition), font-based types and casting (per-token and expression-level), italic string literals, drop cap entry point (void return), print built-in, match wildcards (_), comma-separated match patterns, nested control flow in tables (if inside for, for inside if), arrays (1D and 2D literals via numbered lists, subscript array access, multidimensional subscript with comma separation), imports via bibliography/citations (bibliography Title = filename, citation \p field = function name, recursive resolution), programmatic .docx generation for tests, Roslyn compilation. No dynamic types — all variables must have explicit type fonts.
 
 ## Documentation site
 
@@ -148,7 +159,6 @@ Functions, multi-arg parameters, return (right-align), if/match/for, assignment 
 - **Footnotes** → error handling (try/catch — footnote ref = try site, footnote body = catch)
 - **Endnotes** → deferred execution (like Go's `defer` or `finally`)
 - **Track changes** → mutation (variables immutable by default, track changes required to reassign)
-- **Bibliography/citations** → imports (each bibliography entry = a module import)
 - **Mail merge fields** → generics/templates (`«T»` = generic type parameter)
 - **Cross-references** → pointers/references (cross-ref = pointer, following it = deref)
 - **Bookmarks** → named references / goto targets
