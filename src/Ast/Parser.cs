@@ -114,38 +114,45 @@ public static class Parser
         var body = new List<Stmt>();
 
         var dropCapPara = (ParagraphElement)elements[index];
-        var dropCapText = GetText(dropCapPara);
         index++;
 
-        // The next paragraph continues the drop cap text
-        ParagraphElement? continuationPara = null;
+        // The next paragraph continues the drop cap text — merge runs together
+        // so the drop cap initial letter is treated as part of the first line
+        var mergedRuns = new List<RunElement>(dropCapPara.Runs);
         if (index < elements.Count && elements[index] is ParagraphElement next &&
             !IsHeading(next) && !next.IsDropCap)
         {
-            continuationPara = next;
+            // Stitch the drop cap's last run with the continuation's first run
+            // so "P" + "rint ..." becomes "Print ..."
+            if (mergedRuns.Count > 0 && next.Runs.Count > 0)
+            {
+                var lastDrop = mergedRuns[^1];
+                var firstCont = next.Runs[0];
+                // Merge if the drop cap text doesn't end with whitespace
+                // and the continuation doesn't start with whitespace
+                if (!lastDrop.Text.EndsWith(' ') && !firstCont.Text.StartsWith(' '))
+                {
+                    mergedRuns[^1] = firstCont with { Text = lastDrop.Text + firstCont.Text };
+                    mergedRuns.AddRange(next.Runs.Skip(1));
+                }
+                else
+                {
+                    mergedRuns.AddRange(next.Runs);
+                }
+            }
+            else
+            {
+                mergedRuns.AddRange(next.Runs);
+            }
             index++;
         }
 
-        // Merge text to check for "print"
-        var allRuns = new List<RunElement>(dropCapPara.Runs);
-        if (continuationPara is not null)
-            allRuns.AddRange(continuationPara.Runs);
-
-        var mergedText = string.Join("", allRuns.Select(r => r.Text)).Trim().ToLowerInvariant();
-
-        if (mergedText.StartsWith("print"))
-        {
-            if (continuationPara is not null)
-            {
-                var argRuns = GetRunsAfterPrefix(continuationPara.Runs, "rint");
-                if (argRuns.Count > 0)
-                {
-                    var argExpr = ParseExpression(argRuns);
-                    if (argExpr is not null)
-                        body.Add(new PrintStmt(argExpr));
-                }
-            }
-        }
+        // Build a synthetic paragraph from the merged runs and parse it as a statement
+        var mergedPara = new ParagraphElement(
+            dropCapPara.Style, dropCapPara.Alignment, false, mergedRuns);
+        var firstStmt = ParseParagraphStmt(mergedPara);
+        if (firstStmt is not null)
+            body.Add(firstStmt);
 
         // Continue collecting body elements
         while (index < elements.Count)
@@ -162,39 +169,6 @@ public static class Parser
 
         index--;
         return new Function("Main", new List<Parameter>(), WordyType.Auto, body, true);
-    }
-
-    private static List<RunElement> GetRunsAfterPrefix(List<RunElement> runs, string prefix)
-    {
-        var result = new List<RunElement>();
-        var prefixRemaining = prefix.ToLowerInvariant();
-        bool pastPrefix = false;
-
-        foreach (var run in runs)
-        {
-            if (pastPrefix)
-            {
-                result.Add(run);
-                continue;
-            }
-
-            var text = run.Text.ToLowerInvariant().TrimStart();
-            if (text.StartsWith(prefixRemaining))
-            {
-                var remaining = run.Text.Substring(
-                    run.Text.ToLowerInvariant().IndexOf(prefixRemaining) + prefixRemaining.Length);
-                remaining = remaining.TrimStart();
-                if (!string.IsNullOrEmpty(remaining))
-                    result.Add(run with { Text = remaining });
-                pastPrefix = true;
-            }
-            else if (prefixRemaining.StartsWith(text.TrimEnd()))
-            {
-                prefixRemaining = prefixRemaining.Substring(text.TrimEnd().Length);
-            }
-        }
-
-        return result;
     }
 
     private static List<Parameter> ParseParameters(ParagraphElement para)
@@ -345,19 +319,10 @@ public static class Parser
 
         if (table.Rows.Count >= 3)
         {
-            // 3-row format: row 1 = patterns, row 2 = bodies
+            // 3-row format: row 1 = explicit patterns, row 2 = bodies
+            // Always a match statement (patterns are explicit, not bool sugar)
             var patternRow = table.Rows[1];
             var bodyRow = table.Rows[2];
-
-            if (patternRow.Cells.Count == 2 && bodyRow.Cells.Count == 2)
-            {
-                // If statement
-                var trueBranch = ParseCellBody(bodyRow.Cells[0]);
-                var falseBranch = ParseCellBody(bodyRow.Cells[1]);
-                return new IfStmt(condition, trueBranch, falseBranch);
-            }
-
-            // Match with separate pattern and body rows
             return ParseMatchSeparateRows(condition, patternRow, bodyRow);
         }
 

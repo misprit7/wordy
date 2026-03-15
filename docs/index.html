@@ -1225,10 +1225,20 @@ wordy MyProgram.docx <span class="op">--emit</span>
           In Word, a drop cap is a large initial letter at the start of a paragraph (Format &rarr; Drop Cap).
           The paragraph with a drop cap becomes the <code>Main</code> function.
         </p>
-        <div class="callout tip">
-          <div class="callout-title">Print Shorthand</div>
-          If the drop cap paragraph text starts with "print", the remaining text is treated as an argument
-          to a print statement. This provides a convenient one-line hello-world.
+        <p>
+          The drop cap's initial letter is automatically <strong>stitched</strong> together with the
+          continuation paragraph to form the first line of the entry point. This merged line is then
+          parsed as a normal statement &mdash; it can be a variable assignment, function call, print, or
+          any other valid statement.
+        </p>
+        <div class="fmt-example">
+          <div class="fmt-visual">
+            <span style="font-size:32px;float:left;line-height:0.8;margin-right:2px;color:var(--accent);">P</span><span style="font-size:14px;">rint <strong>factorial 10</strong></span>
+          </div>
+          <div>
+            <div class="fmt-desc">Drop cap "P" + continuation "rint <strong>factorial 10</strong>"</div>
+            <div class="fmt-result">Merged into <code>print(factorial(10))</code></div>
+          </div>
         </div>
       </section>
 
@@ -1618,11 +1628,15 @@ result <span class="op">&larr;</span> result <span class="op">&times;</span> n  
       <!-- Print -->
       <section id="print">
         <h2>Print Statement</h2>
-        <p>There are two ways to print output:</p>
-        <ol>
-          <li><strong>Drop Cap print:</strong> A drop cap paragraph starting with "print" followed by the value to output.</li>
-          <li><strong>Function call:</strong> Calling <code>print</code> as a function &mdash; any call expression named "print" is converted to a <code>Console.WriteLine</code> statement.</li>
-        </ol>
+        <p>
+          Calling <code>print</code> as a function prints the argument to standard output.
+          Any call expression named "print" is automatically converted to a <code>Console.WriteLine</code>
+          statement. This works anywhere &mdash; in the entry point, in regular functions, or inside control flow.
+        </p>
+        <div class="code-block">
+          <span class="code-label">Wordy</span>
+<span class="fn">print</span> <strong><span class="str">Hello, World!</span></strong>    <span class="cm">&larr; bold bracket wraps the argument</span>
+        </div>
       </section>
 
       <hr class="section-divider">

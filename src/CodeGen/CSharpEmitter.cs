@@ -175,10 +175,22 @@ public static class CSharpEmitter
 
     private static void EmitFor(StringBuilder sb, ForStmt forStmt, int indent, HashSet<string> declared)
     {
-        Indent(sb, indent);
-        sb.Append("for (");
-        EmitStatementInline(sb, forStmt.Init, declared);
-        sb.Append("; ");
+        // If the init declares a new variable, hoist it before the for loop
+        // so it remains accessible after the loop (Wordy has no block scoping)
+        if (forStmt.Init is AssignStmt initAssign && !declared.Contains(initAssign.Variable))
+        {
+            EmitStatement(sb, initAssign, indent, declared);
+            Indent(sb, indent);
+            sb.Append("for (; ");
+        }
+        else
+        {
+            Indent(sb, indent);
+            sb.Append("for (");
+            EmitStatementInline(sb, forStmt.Init, declared);
+            sb.Append("; ");
+        }
+
         EmitExpr(sb, forStmt.Condition);
         sb.Append("; ");
         EmitStatementInline(sb, forStmt.Step, declared);

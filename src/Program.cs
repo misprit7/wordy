@@ -5,11 +5,14 @@ using Wordy.CodeGen;
 // Generate test files
 if (args.Length >= 2 && args[0] == "--gen")
 {
+    var outPath = args.Length >= 3 ? args[2] : args[1] + ".docx";
     switch (args[1].ToLowerInvariant())
     {
         case "fibonacci":
-            var outPath = args.Length >= 3 ? args[2] : "Fibonacci.docx";
             Wordy.Debug.DocxGenerator.GenerateFibonacci(outPath);
+            return 0;
+        case "comprehensive":
+            Wordy.Debug.DocxGenerator.GenerateComprehensive(outPath);
             return 0;
         default:
             Console.Error.WriteLine($"Unknown generator: {args[1]}");
