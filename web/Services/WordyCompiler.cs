@@ -67,7 +67,7 @@ public class WordyCompiler
     /// Compile and run multiple .docx files. The main file is the entry point;
     /// imported files provide additional functions that get merged into the main program.
     /// </summary>
-    public async Task<CompilationResult> CompileAndRunAsync(Dictionary<string, Stream> files, string mainFileName)
+    public async Task<CompilationResult> CompileAndRunAsync(Dictionary<string, Stream> files, string mainFileName, string? stdinInput = null)
     {
         try
         {
@@ -142,6 +142,8 @@ public class WordyCompiler
             var writer = new StringWriter();
             var oldOut = Console.Out;
             Console.SetOut(writer);
+            // Provide stdin so Console.Read() works in WASM
+            Console.SetIn(new StringReader(stdinInput ?? ""));
             try
             {
                 var parameters = entryPoint.GetParameters();

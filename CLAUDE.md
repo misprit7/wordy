@@ -54,7 +54,7 @@ Font family determines type. Putting a value/variable in a type font casts it.
 | Times New Roman | string |
 | Comic Sans MS | bool |
 | Script/cursive | float |
-| Symbol | char |
+| Impact | char |
 
 Non-reserved fonts (Calibri, Cambria Math) carry no type info — use as neutral code text. Cambria Math is recommended since it includes all required Unicode symbols.
 

@@ -627,6 +627,34 @@ body {
   /* subtle red tint at top */
 }
 
+.page-console .stdin-echo {
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 0 0 4px 0;
+  white-space: pre-wrap;
+}
+
+.console-stdin {
+  border-top: 1px solid #eee;
+  padding: 8px 40px 12px;
+}
+
+.stdin-box {
+  width: 100%;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  font-size: 12px;
+  border: 1px solid var(--ribbon-border);
+  border-radius: 3px;
+  padding: 6px 8px;
+  resize: vertical;
+  min-height: 28px;
+}
+
+.stdin-box:focus {
+  outline: none;
+  border-color: var(--accent-light);
+}
+
 /* ─── Document Preview ─── */
 .page-preview {
   flex: 1;

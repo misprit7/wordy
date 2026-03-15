@@ -214,7 +214,7 @@ public static class Parser
             var type = FontToType(run.FontName);
             if (type is null)
                 throw new InvalidOperationException(
-                    $"Parameter '{text}' has no type font. Use a type font (Courier New = int, Times New Roman = string, Comic Sans MS = bool, cursive = float, Symbol = char).");
+                    $"Parameter '{text}' has no type font. Use a type font (Courier New = int, Times New Roman = string, Comic Sans MS = bool, cursive = float, Impact = char).");
             parameters.Add(new Parameter(text.ToLowerInvariant(), type.Value));
         }
         return parameters;
@@ -245,7 +245,7 @@ public static class Parser
         if (para.Runs.Count == 0 || string.IsNullOrWhiteSpace(GetText(para)))
             return null;
 
-        // Reflection on a char-typed variable (Symbol font) = scan (read character input)
+        // Reflection on a char-typed variable (Impact font) = scan (read character input)
         // No ← needed — the reflection formatting itself declares and assigns
         if (para.Runs.Any(r => r.Reflection))
         {
@@ -1252,7 +1252,7 @@ public static class Parser
             "courier new" => WordyType.Int,
             "comic sans ms" => WordyType.Bool,
             "brush script mt" or "lucida handwriting" or "segoe script" => WordyType.Float,
-            "symbol" => WordyType.Char,
+            "impact" => WordyType.Char,
             _ => null
         };
     }

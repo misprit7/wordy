@@ -39,6 +39,8 @@ public static class DocxGenerator
         body.Append(new Paragraph());
 
         Save(doc);
+        doc.Dispose();
+        FixContentTypes(path);
         Console.WriteLine($"Generated: {path}");
     }
 
@@ -291,6 +293,8 @@ public static class DocxGenerator
 
         body.Append(new Paragraph());
         Save(doc);
+        doc.Dispose();
+        FixContentTypes(path);
         Console.WriteLine($"Generated: {path}");
     }
 
@@ -301,13 +305,15 @@ public static class DocxGenerator
 
         // Drop cap entry point — "C" merges with "h" (reflection = scan char)
         AppendDropCapRun(body, "C");
-        // "h" with reflection + Symbol font = declare char variable "ch" via scan
-        body.Append(MakeParagraph(R("h", font: "Symbol", reflection: true)));
+        // "h" with reflection + Impact font = declare char variable "ch" via scan
+        body.Append(MakeParagraph(R("h", font: "Impact", reflection: true)));
         // Glow print the char
         body.Append(MakeGlowParagraph(new[] { R("Ch", bold: true) }));
 
         body.Append(new Paragraph());
         Save(doc);
+        doc.Dispose();
+        FixContentTypes(path);
         Console.WriteLine($"Generated: {path}");
     }
 
@@ -380,6 +386,8 @@ public static class DocxGenerator
 
         body.Append(new Paragraph());
         Save(doc);
+        doc.Dispose();
+        FixContentTypes(path);
         Console.WriteLine($"Generated: {path}");
     }
 
@@ -395,8 +403,8 @@ public static class DocxGenerator
         body.Append(MakeHeading("Match", "Courier New"));
         body.Append(new Paragraph(
             new ParagraphProperties(new ParagraphStyleId { Val = "Subtitle" }),
-            MakeRun("A ", "Symbol"),
-            MakeRun("B", "Symbol")));
+            MakeRun("A ", "Impact"),
+            MakeRun("B", "Impact")));
         body.Append(MakeIfTable(
             condition: new[] { R("A = B") },
             trueBranch: new[] { R("1") },
@@ -425,9 +433,9 @@ public static class DocxGenerator
         AppendDropCapRun(body, "W");
         body.Append(MakeParagraph(R("ord ←")));
 
-        // Target word as char array (italic = string literal, Symbol font = char type)
+        // Target word as char array (italic = string literal, Impact font = char type)
         foreach (var ch in "WORDY")
-            body.Append(MakeListParagraph(numId: 1, ilvl: 0, R(ch.ToString(), font: "Symbol", italic: true)));
+            body.Append(MakeListParagraph(numId: 1, ilvl: 0, R(ch.ToString(), font: "Impact", italic: true)));
 
         // Print intro
         body.Append(MakeGlowParagraph(new[] {
@@ -463,8 +471,8 @@ public static class DocxGenerator
         // Scan 5 guess characters + newline
         string[] guessVars = { "A", "B", "C", "D", "E" };
         foreach (var v in guessVars)
-            bodyCell.Append(MakeParagraph(R(v, font: "Symbol", reflection: true)));
-        bodyCell.Append(MakeParagraph(R("Nl", font: "Symbol", reflection: true)));
+            bodyCell.Append(MakeParagraph(R(v, font: "Impact", reflection: true)));
+        bodyCell.Append(MakeParagraph(R("Nl", font: "Impact", reflection: true)));
 
         // Result ← hint(match(Word₀, A)) + hint(match(Word₁, B)) + ...
         bodyCell.Append(MakeWordleResultAssignment(guessVars));
@@ -497,6 +505,8 @@ public static class DocxGenerator
 
         body.Append(new Paragraph());
         Save(doc);
+        doc.Dispose();
+        FixContentTypes(path);
         Console.WriteLine($"Generated: {path}");
     }
 
@@ -695,7 +705,7 @@ public static class DocxGenerator
             )
         );
 
-        // Set Cambria Math as the document default font
+        // Set Cambria Math as the document default font + define referenced styles
         var stylesPart = mainPart.AddNewPart<StyleDefinitionsPart>();
         stylesPart.Styles = new Styles(
             new DocDefaults(
@@ -712,7 +722,46 @@ public static class DocxGenerator
                         new FontSizeComplexScript { Val = "24" }
                     )
                 )
-            )
+            ),
+            // Normal (required base style)
+            new Style(
+                new StyleName { Val = "Normal" }
+            ) { Type = StyleValues.Paragraph, StyleId = "Normal", Default = true },
+            // Heading 1 — used for function definitions
+            new Style(
+                new StyleName { Val = "heading 1" },
+                new BasedOn { Val = "Normal" },
+                new StyleParagraphProperties(
+                    new KeepNext(),
+                    new SpacingBetweenLines { Before = "240", After = "60" }
+                ),
+                new StyleRunProperties(
+                    new Bold(),
+                    new FontSize { Val = "32" }
+                )
+            ) { Type = StyleValues.Paragraph, StyleId = "Heading1" },
+            // Subtitle — used for parameter declarations
+            new Style(
+                new StyleName { Val = "Subtitle" },
+                new BasedOn { Val = "Normal" },
+                new StyleRunProperties(
+                    new Color { Val = "595959" },
+                    new FontSize { Val = "24" }
+                )
+            ) { Type = StyleValues.Paragraph, StyleId = "Subtitle" },
+            // ListParagraph — used for numbered list items (array literals)
+            new Style(
+                new StyleName { Val = "List Paragraph" },
+                new BasedOn { Val = "Normal" },
+                new StyleParagraphProperties(
+                    new Indentation { Left = "720" }
+                )
+            ) { Type = StyleValues.Paragraph, StyleId = "ListParagraph" },
+            // Bibliography — used for import sections
+            new Style(
+                new StyleName { Val = "Bibliography" },
+                new BasedOn { Val = "Normal" }
+            ) { Type = StyleValues.Paragraph, StyleId = "Bibliography" }
         );
 
         return doc;
@@ -721,6 +770,38 @@ public static class DocxGenerator
     private static void Save(WordprocessingDocument doc)
     {
         doc.MainDocumentPart!.Document!.Save();
+    }
+
+    /// <summary>
+    /// The OpenXML SDK sets Default Extension="xml" to the document main content type,
+    /// but Word expects it to be "application/xml" with an Override for document.xml.
+    /// This post-processes the saved .docx zip to fix the content types.
+    /// </summary>
+    public static void FixContentTypes(string path)
+    {
+        using var archive = System.IO.Compression.ZipFile.Open(path, System.IO.Compression.ZipArchiveMode.Update);
+        var entry = archive.GetEntry("[Content_Types].xml");
+        if (entry is null) return;
+
+        string content;
+        using (var reader = new System.IO.StreamReader(entry.Open()))
+            content = reader.ReadToEnd();
+
+        // Replace the wrong Default for .xml with the correct one,
+        // and add an Override for document.xml
+        var docMainType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml";
+        var wrongDefault = $"<Default Extension=\"xml\" ContentType=\"{docMainType}\" />";
+        if (content.Contains(wrongDefault))
+        {
+            var fixedDefault = "<Default Extension=\"xml\" ContentType=\"application/xml\" />";
+            var docOverride = $"<Override PartName=\"/word/document.xml\" ContentType=\"{docMainType}\" />";
+            content = content.Replace(wrongDefault, fixedDefault + docOverride);
+
+            entry.Delete();
+            var newEntry = archive.CreateEntry("[Content_Types].xml");
+            using var writer = new System.IO.StreamWriter(newEntry.Open());
+            writer.Write(content);
+        }
     }
 
     // ── Run shorthand ──
@@ -1092,7 +1173,9 @@ public static class DocxGenerator
                 EndingOpacity = new DocumentFormat.OpenXml.Int32Value(0),
             });
 
-        run.Append(props);
+        // Only append RunProperties if there are actual properties set
+        if (props.HasChildren)
+            run.Append(props);
         run.Append(new Text(text) { Space = SpaceProcessingModeValues.Preserve });
         return run;
     }

@@ -238,10 +238,14 @@
                     <pre class="page-code">@(result?.CSharpSource ?? "// Upload a .docx file and click Run")</pre>
                 </div>
                 <div class="compiler-page">
-                    <div class="page-title">Console Output</div>
+                    <div class="page-title">Console</div>
                     <div class="page-console @(result?.Success == false ? "has-error" : "")">
                         @if (result != null)
                         {
+                            @if (!string.IsNullOrEmpty(stdinInput))
+                            {
+                                <pre class="stdin-echo">&gt; @stdinInput</pre>
+                            }
                             @if (result.Output != null)
                             {
                                 <pre class="output">@result.Output</pre>
@@ -256,6 +260,12 @@
                             <div class="compiling">Compiling...</div>
                         }
                     </div>
+                    @if (needsInput)
+                    {
+                        <div class="console-stdin">
+                            <textarea @bind="stdinInput" placeholder="Type program input here..." class="stdin-box" rows="2"></textarea>
+                        </div>
+                    }
                 </div>
             </div>
         }
@@ -297,7 +307,7 @@
     // Set at build time — changes only on rebuild, so browsers cache until then
     private static readonly string BuildVersion = typeof(Home).Assembly.GetName().Version?.ToString() ?? "0";
 
-    private static readonly string[] exampleNames = { "Factorial", "FizzBuzz", "Fibonacci", "Comprehensive" };
+    private string[] exampleNames = Array.Empty<string>();
 
     private bool showExampleMenu;
     private string activeTab = "compiler";
@@ -306,8 +316,23 @@
     private CompilationResult? result;
     private bool isCompiling;
     private string statusText = "Ready";
+    private string? stdinInput;
+    private bool needsInput;
 
     [Inject] private HttpClient Http { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var text = await Http.GetStringAsync($"examples/manifest.txt?v={BuildVersion}");
+            exampleNames = text.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        }
+        catch
+        {
+            exampleNames = Array.Empty<string>();
+        }
+    }
 
     private async Task HandleFileUpload(InputFileChangeEventArgs e)
     {
@@ -466,7 +491,7 @@
 
         try
         {
-            result = await Compiler.CompileAndRunAsync(streams, mainFileName);
+            result = await Compiler.CompileAndRunAsync(streams, mainFileName, stdinInput);
         }
         finally
         {
@@ -475,6 +500,7 @@
         }
 
         isCompiling = false;
+        needsInput = result?.CSharpSource?.Contains("Console.Read()") == true;
         statusText = result.Success ? "Compiled and executed successfully" : "Compilation failed";
     }
 

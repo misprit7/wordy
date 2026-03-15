@@ -36,6 +36,7 @@ jobs:
           mkdir -p web/wwwroot/examples
           cp docx/manual/*.docx web/wwwroot/examples/
           cp docx/generated/*.docx web/wwwroot/examples/
+          ls web/wwwroot/examples/*.docx | grep -v '~\$' | xargs -I{} basename {} .docx > web/wwwroot/examples/manifest.txt
 
       - name: Rewrite base href for GitHub Pages
         run: sed -i 's|<base href="/" />|<base href="/wordy/" />|' web/wwwroot/index.html
