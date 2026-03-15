@@ -36,12 +36,15 @@ public record ArrayAccessExpr(Expr Array, Expr Index) : Expr;
 
 public record ExponentExpr(Expr Base, Expr Exponent) : Expr;
 
+public record CastExpr(Expr Value, WordyType TargetType) : Expr;
+
 public enum BinaryOp
 {
     Add,
     Subtract,
     Multiply,
     Divide,
+    Modulo,
     Equal,
     NotEqual,
     LessThan,
@@ -67,8 +70,6 @@ public record ReturnStmt(Expr Value) : Stmt;
 
 public record PrintStmt(Expr Value) : Stmt;
 
-public record DeleteStmt(string Variable) : Stmt;
-
 public record IfStmt(
     Expr Condition,
     List<Stmt> TrueBranch,
@@ -80,7 +81,7 @@ public record MatchStmt(
     List<MatchCase> Cases
 ) : Stmt;
 
-public record MatchCase(Expr? Pattern, List<Stmt> Body);
+public record MatchCase(List<Expr> Patterns, List<Stmt> Body);
 
 public record ForStmt(
     Stmt Init,

@@ -8,24 +8,26 @@ Wordy is an esoteric programming language that uses Microsoft Word `.docx` docum
 - **Case insensitive**: `Foo`, `foo`, and `FOO` are the same identifier.
 - **No keywords**: all syntax is communicated through formatting, not text content.
 - **No inline comments**: comments are done exclusively through Word's comment feature (Insert > Comment).
+- Any non-reserved font (e.g., Cambria Math) can be used as a neutral "code" font with no type implications.
 
 ## Functions
 
 - **Declaration**: a **heading** (Heading 1, Heading 2, etc.) defines a function. The heading text is the function name.
-- **Parameters**: defined in a **subtitle** paragraph immediately following the heading.
-- **Entry point**: the function whose heading uses a **drop cap** is the program's entry point (equivalent to `main`).
-- **Visibility**: functions listed in the **Table of Contents** are public/exported. Functions not in the ToC are private to the module. (Heading level could also play a role here — Heading 1 = public, Heading 2+ = private — TBD.)
+- **Return type**: determined by the **font** of the heading text.
+- **Parameters**: defined in a **subtitle** paragraph immediately following the heading, or a plain paragraph where each parameter's font indicates its type.
+- **Entry point**: a paragraph with a **drop cap** marks the program's entry point (equivalent to `main`).
+- **Visibility**: functions listed in the **Table of Contents** are public/exported. Functions not in the ToC are private to the module. (TBD.)
 
 ## Variables
 
 - **Declaration**: the first occurrence of a word is its declaration. No explicit declaration syntax.
-- **Assignment**: uses **tab stops**. The value is on the left of the tab stop, the variable name is on the right. (TBD: or vice versa.)
+- **Assignment**: `variable ← value` using the left arrow `←` (U+2190).
 - **Immutability by default**: variables are immutable. To reassign, the reassignment must be written with **Track Changes** enabled, so the old value appears as deleted and the new value as inserted. Mutation history is visible in the document.
 - **Constants**: **small caps** formatting marks a variable as a compile-time constant.
 
-## Types
+## Types and Casting
 
-Types are determined by **font family**:
+Types are determined by **font family**. Placing a value or variable in a type font **casts** it to that type.
 
 | Font | Type | Rationale |
 |------|------|-----------|
@@ -38,20 +40,30 @@ Types are determined by **font family**:
 | Calibri | auto (inferred) | Word's default font. No formatting = compiler infers the type. |
 | Impact | error/exception | It's called Impact. Errors hit hard. |
 
-Changing the font of a value or variable changes its type.
+Any font not in the above list (e.g., Cambria Math) carries no type information and is treated as neutral code text.
+
+## String Literals
+
+**Italic** text is a string literal. The text content is the string value. This applies regardless of font — italics always mean "this is a string."
 
 ## Numeric Literals
 
-The **font size** of the text *is* the numeric value. Text at size 42 represents the number 42. The actual text content of numeric literals is ignored (or could be required to match — TBD).
+Numbers are written as text content (e.g., `42`). Font size as numeric value is a possible future feature.
 
 ## Arithmetic
 
 - Addition: `+`
-- Subtraction: `-`
-- Multiplication: `×` (the actual times symbol, not `*`)
-- Division: `÷` (the actual division symbol, not `/`)
+- Subtraction: `−` (U+2212, the actual minus sign)
+- Multiplication: `×` (U+00D7, the actual times symbol, not `*`)
+- Division: `÷` (U+00F7, the actual division symbol, not `/`)
+- Modulo: `%`
 - Exponentiation: **superscript** formatting (e.g., x with a superscripted 2 = x²)
 - Array access: **subscript** formatting (e.g., arr with a subscripted i = arr[i])
+
+## Logical Operators
+
+- Logical AND: `∧` (U+2227)
+- Logical OR: `∨` (U+2228)
 
 ## Brackets / Grouping
 
@@ -59,9 +71,10 @@ Brackets are represented by **formatting nesting**. Applying a formatting style 
 
 - **Bold** text opens a bracket. Ending bold closes it.
 - Within that bold region, a **highlight color** opens a nested bracket.
-- Within that, **italic** starts another nesting level.
 
-The ordering of formatting types for nesting is user-defined (not fixed). However, **undoing an outer formatting inside an inner one is invalid syntax**. For example, if bold is the outer bracket and highlight is the inner bracket, removing bold while still inside the highlighted region is a syntax error.
+The ordering of formatting types for nesting is user-defined (not fixed). However, **undoing an outer formatting inside an inner one is invalid syntax**.
+
+Note: **italic** is reserved for string literals and cannot be used as a bracket level.
 
 ## Control Flow
 
@@ -71,49 +84,48 @@ All control flow uses **tables**.
 
 A table with **one merged top cell** is a match statement:
 - The **merged top cell** contains the expression to match on.
-- The row below is split into N cells, one per case.
-- The **top of each case cell** contains the value to match against.
-- The **rest of each case cell** contains the body to execute.
+- **3-row format**: Row 1 = pattern cells, Row 2 = body cells (paired by column index).
+- **2-row format**: Row 1 cells contain pattern (first paragraph) + body (remaining paragraphs).
+- Patterns can be **comma-separated** for multiple values per case (e.g., `3,6,9,12`).
+- A pattern of `_` is the **default/wildcard** case.
 
 ### If Statements (Syntax Sugar)
 
-An if statement is a match statement where the matched expression has type **bool**. As sugar:
-- The two case cells do not need to explicitly contain `true` and `false`.
+An if statement is a match statement where the matched expression is boolean:
+- The two case cells do not need explicit `true`/`false` patterns.
 - The **left cell** is the true branch, the **right cell** is the false branch.
 
 ### For Loops
 
-A table with **three merged top cells** is a for loop (C-style):
-- **Left top cell**: loop variable declaration / initialization.
-- **Middle top cell**: loop condition.
-- **Right top cell**: increment / step expression.
-- The **row below** (spanning the full width) is the loop body.
+A table with **three cells in the top row** is a for loop (C-style):
+- **Left cell**: loop variable initialization.
+- **Middle cell**: loop condition.
+- **Right cell**: increment / step expression.
+- **Remaining rows** are the loop body. If the body rows form a match/if pattern (merged cell + branch cells), they are parsed as nested control flow.
 
-## Functions Calls
+## Function Calls
 
-**Hyperlinks**: the URL/target of the hyperlink is the function name, the display text contains the arguments.
+A function call is an **identifier followed by a formatting bracket** containing the arguments. For example, bold text `factorial` followed by highlighted+bold text `number − 1` = `factorial(number − 1)`.
+
+Within a bracket, **juxtaposition** (identifier followed by a value without an operator) is also a function call: `fizzbuzz i` inside a bold bracket = `fizzbuzz(i)`.
 
 ## Return Values
 
 **Right-aligned** text is a return value. The function returns that expression to its caller.
 
-**Page breaks** exit the current function (early return). A right-aligned expression followed by a page break returns that value and exits.
+**Page breaks** exit the current function (early return).
 
 ## Output / Print
 
-**Glow text effect**: text with a glow effect is printed to stdout.
+`print` is a built-in function. Call it like any other function: `print` followed by a bracketed argument.
 
 ## Error Handling
 
-**Footnotes**: a footnote reference in the main text marks a "try" site. The corresponding footnote at the bottom of the page is the error handler for that site. If the expression at the footnote reference throws, execution jumps to the footnote body.
+**Footnotes**: a footnote reference in the main text marks a "try" site. The corresponding footnote at the bottom of the page is the error handler for that site.
 
 ## Deferred Execution / Cleanup
 
 **Endnotes**: endnote bodies execute when the current function exits, regardless of how it exits (similar to `defer` in Go or `finally`). They run in reverse order of their appearance.
-
-## Memory Management
-
-**Strikethrough**: applying strikethrough to a variable name deallocates / deletes it. Visually, you are crossing it out.
 
 ## Copy / Clone
 
@@ -153,11 +165,8 @@ Wordy transpiles to **C#**. The compiler is written in C# using the **OpenXML SD
 
 ## Open Questions
 
-- Full font-to-type mapping
-- Whether numeric literal text content must match the font size or is ignored
-- Exact tab stop assignment semantics (value→name or name→value)
 - Heading level vs. ToC for visibility — pick one or use both
 - Whether bookmarks should support goto or only exist for cross-references
 - Equation editor for complex math (deferred — implementation complexity)
-- Concurrency via columns (explicitly not implementing)
 - Details of list-based data structure definitions
+- Font size as numeric literal (currently using text content instead)

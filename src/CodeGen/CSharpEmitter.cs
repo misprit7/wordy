@@ -27,10 +27,12 @@ public static class CSharpEmitter
     {
         var returnType = func.IsEntryPoint ? "void" : TypeToCSharp(func.ReturnType);
         var methodName = func.IsEntryPoint ? "Main" : SanitizeIdentifier(func.Name);
-        var accessMod = func.IsEntryPoint ? "public static" : "public static";
 
         Indent(sb, indent);
-        sb.Append($"{accessMod} {returnType} {methodName}(");
+        sb.Append($"public static {returnType} {methodName}(");
+
+        // Track declared variables (parameters are pre-declared)
+        var declared = new HashSet<string>();
 
         if (func.IsEntryPoint)
         {
@@ -40,6 +42,8 @@ public static class CSharpEmitter
         {
             sb.Append(string.Join(", ", func.Parameters.Select(p =>
                 $"{TypeToCSharp(p.Type)} {SanitizeIdentifier(p.Name)}")));
+            foreach (var p in func.Parameters)
+                declared.Add(p.Name);
         }
 
         sb.AppendLine(")");
@@ -47,15 +51,13 @@ public static class CSharpEmitter
         sb.AppendLine("{");
 
         foreach (var stmt in func.Body)
-        {
-            EmitStatement(sb, stmt, indent + 1);
-        }
+            EmitStatement(sb, stmt, indent + 1, declared);
 
         Indent(sb, indent);
         sb.AppendLine("}");
     }
 
-    private static void EmitStatement(StringBuilder sb, Stmt stmt, int indent)
+    private static void EmitStatement(StringBuilder sb, Stmt stmt, int indent, HashSet<string> declared)
     {
         switch (stmt)
         {
@@ -75,26 +77,25 @@ public static class CSharpEmitter
 
             case AssignStmt assign:
                 Indent(sb, indent);
-                sb.Append($"var {SanitizeIdentifier(assign.Variable)} = ");
+                var varName = SanitizeIdentifier(assign.Variable);
+                if (declared.Add(assign.Variable))
+                    sb.Append($"var {varName} = ");
+                else
+                    sb.Append($"{varName} = ");
                 EmitExpr(sb, assign.Value);
                 sb.AppendLine(";");
                 break;
 
-            case DeleteStmt del:
-                Indent(sb, indent);
-                sb.AppendLine($"// delete {del.Variable} (no-op in C#)");
-                break;
-
             case IfStmt ifStmt:
-                EmitIf(sb, ifStmt, indent);
+                EmitIf(sb, ifStmt, indent, declared);
                 break;
 
             case MatchStmt match:
-                EmitMatch(sb, match, indent);
+                EmitMatch(sb, match, indent, declared);
                 break;
 
             case ForStmt forStmt:
-                EmitFor(sb, forStmt, indent);
+                EmitFor(sb, forStmt, indent, declared);
                 break;
 
             case ExprStmt expr:
@@ -105,7 +106,7 @@ public static class CSharpEmitter
         }
     }
 
-    private static void EmitIf(StringBuilder sb, IfStmt ifStmt, int indent)
+    private static void EmitIf(StringBuilder sb, IfStmt ifStmt, int indent, HashSet<string> declared)
     {
         Indent(sb, indent);
         sb.Append("if (");
@@ -114,7 +115,7 @@ public static class CSharpEmitter
         Indent(sb, indent);
         sb.AppendLine("{");
         foreach (var s in ifStmt.TrueBranch)
-            EmitStatement(sb, s, indent + 1);
+            EmitStatement(sb, s, indent + 1, declared);
         Indent(sb, indent);
         sb.AppendLine("}");
         if (ifStmt.FalseBranch.Count > 0)
@@ -124,13 +125,13 @@ public static class CSharpEmitter
             Indent(sb, indent);
             sb.AppendLine("{");
             foreach (var s in ifStmt.FalseBranch)
-                EmitStatement(sb, s, indent + 1);
+                EmitStatement(sb, s, indent + 1, declared);
             Indent(sb, indent);
             sb.AppendLine("}");
         }
     }
 
-    private static void EmitMatch(StringBuilder sb, MatchStmt match, int indent)
+    private static void EmitMatch(StringBuilder sb, MatchStmt match, int indent, HashSet<string> declared)
     {
         Indent(sb, indent);
         sb.Append("switch (");
@@ -141,55 +142,67 @@ public static class CSharpEmitter
 
         foreach (var c in match.Cases)
         {
-            Indent(sb, indent + 1);
-            if (c.Pattern is not null)
+            if (c.Patterns.Count > 0)
             {
-                sb.Append("case ");
-                EmitExpr(sb, c.Pattern);
-                sb.AppendLine(":");
+                foreach (var pattern in c.Patterns)
+                {
+                    Indent(sb, indent + 1);
+                    sb.Append("case ");
+                    EmitExpr(sb, pattern);
+                    sb.AppendLine(":");
+                }
             }
             else
             {
+                Indent(sb, indent + 1);
                 sb.AppendLine("default:");
             }
 
             foreach (var s in c.Body)
-                EmitStatement(sb, s, indent + 2);
+                EmitStatement(sb, s, indent + 2, declared);
 
-            Indent(sb, indent + 2);
-            sb.AppendLine("break;");
+            // Only emit break if the body doesn't end with a return
+            if (!c.Body.Any(s => s is ReturnStmt))
+            {
+                Indent(sb, indent + 2);
+                sb.AppendLine("break;");
+            }
         }
 
         Indent(sb, indent);
         sb.AppendLine("}");
     }
 
-    private static void EmitFor(StringBuilder sb, ForStmt forStmt, int indent)
+    private static void EmitFor(StringBuilder sb, ForStmt forStmt, int indent, HashSet<string> declared)
     {
         Indent(sb, indent);
         sb.Append("for (");
-        EmitStatementInline(sb, forStmt.Init);
+        EmitStatementInline(sb, forStmt.Init, declared);
         sb.Append("; ");
         EmitExpr(sb, forStmt.Condition);
         sb.Append("; ");
-        EmitStatementInline(sb, forStmt.Step);
+        EmitStatementInline(sb, forStmt.Step, declared);
         sb.AppendLine(")");
         Indent(sb, indent);
         sb.AppendLine("{");
 
         foreach (var s in forStmt.Body)
-            EmitStatement(sb, s, indent + 1);
+            EmitStatement(sb, s, indent + 1, declared);
 
         Indent(sb, indent);
         sb.AppendLine("}");
     }
 
-    private static void EmitStatementInline(StringBuilder sb, Stmt stmt)
+    private static void EmitStatementInline(StringBuilder sb, Stmt stmt, HashSet<string> declared)
     {
         switch (stmt)
         {
             case AssignStmt assign:
-                sb.Append($"var {SanitizeIdentifier(assign.Variable)} = ");
+                var varName = SanitizeIdentifier(assign.Variable);
+                if (declared.Add(assign.Variable))
+                    sb.Append($"var {varName} = ");
+                else
+                    sb.Append($"{varName} = ");
                 EmitExpr(sb, assign.Value);
                 break;
             case ExprStmt expr:
@@ -206,14 +219,13 @@ public static class CSharpEmitter
         switch (expr)
         {
             case NumberLiteral num:
-                // Emit as int if it's a whole number
                 if (num.Value == Math.Floor(num.Value) && !double.IsInfinity(num.Value))
                     sb.Append((long)num.Value);
                 else
                     sb.Append(num.Value);
                 break;
             case StringLiteral str:
-                sb.Append($"\"{str.Value.Replace("\"", "\\\"")}\"");
+                sb.Append($"\"{str.Value.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"");
                 break;
             case BoolLiteral b:
                 sb.Append(b.Value ? "true" : "false");
@@ -254,6 +266,44 @@ public static class CSharpEmitter
                 EmitExpr(sb, exp.Exponent);
                 sb.Append(')');
                 break;
+            case CastExpr cast:
+                EmitCast(sb, cast);
+                break;
+        }
+    }
+
+    private static void EmitCast(StringBuilder sb, CastExpr cast)
+    {
+        switch (cast.TargetType)
+        {
+            case WordyType.String:
+                // Cast to string = .ToString()
+                EmitExpr(sb, cast.Value);
+                sb.Append(".ToString()");
+                break;
+            case WordyType.Int:
+                sb.Append("((int)(");
+                EmitExpr(sb, cast.Value);
+                sb.Append("))");
+                break;
+            case WordyType.Float:
+                sb.Append("((double)(");
+                EmitExpr(sb, cast.Value);
+                sb.Append("))");
+                break;
+            case WordyType.Bool:
+                sb.Append("Convert.ToBoolean(");
+                EmitExpr(sb, cast.Value);
+                sb.Append(')');
+                break;
+            case WordyType.Char:
+                sb.Append("Convert.ToChar(");
+                EmitExpr(sb, cast.Value);
+                sb.Append(')');
+                break;
+            default:
+                EmitExpr(sb, cast.Value);
+                break;
         }
     }
 
@@ -263,6 +313,7 @@ public static class CSharpEmitter
         BinaryOp.Subtract => "-",
         BinaryOp.Multiply => "*",
         BinaryOp.Divide => "/",
+        BinaryOp.Modulo => "%",
         BinaryOp.Equal => "==",
         BinaryOp.NotEqual => "!=",
         BinaryOp.LessThan => "<",
@@ -290,7 +341,7 @@ public static class CSharpEmitter
     private static string SanitizeIdentifier(string name)
     {
         var sanitized = new StringBuilder();
-        bool capitalizeNext = true; // PascalCase
+        bool capitalizeNext = true;
         foreach (var c in name)
         {
             if (char.IsLetterOrDigit(c) || c == '_')

@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wordy Language Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;600;700&family=Courier+Prime&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ribbon-bg: #2b579a;
+  --ribbon-tab-active: #ffffff;
+  --ribbon-tab-inactive: rgba(255,255,255,0.7);
+  --ribbon-panel-bg: #f3f3f3;
+  --ribbon-border: #d1d1d1;
+  --accent: #2b579a;
+  --accent-light: #4472c4;
+  --accent-lighter: #d6e4f0;
+  --text: #333;
+  --text-muted: #666;
+  --bg: #e8e8e8;
+  --paper: #ffffff;
+  --ruler-bg: #f0f0f0;
+  --code-bg: #f8f9fa;
+  --table-header: #4472c4;
+  --table-alt: #d9e2f3;
+  --table-border: #8eaadb;
+  --success: #70ad47;
+  --warning: #ffc000;
+  --danger: #ff4444;
+  --sidebar-width: 260px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Title Bar ─── */
+.title-bar {
+  background: var(--ribbon-bg);
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 4px 12px;
+  font-size: 12px;
+  gap: 8px;
+  min-height: 32px;
+  user-select: none;
+}
+
+.title-bar-icon {
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(135deg, #4472c4, #2b579a);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 11px;
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+.title-bar-text {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  opacity: 0.95;
+}
+
+.title-bar-buttons {
+  display: flex;
+  gap: 0;
+}
+
+.title-bar-btn {
+  width: 46px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title-bar-btn:hover { background: rgba(255,255,255,0.1); }
+.title-bar-btn.close:hover { background: #e81123; }
+
+/* ─── Quick Access Toolbar ─── */
+.quick-access {
+  background: var(--ribbon-bg);
+  padding: 0 12px 0 42px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 22px;
+}
+
+.qa-btn {
+  width: 22px;
+  height: 20px;
+  border: none;
+  background: none;
+  color: rgba(255,255,255,0.7);
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qa-btn:hover { background: rgba(255,255,255,0.15); color: white; }
+
+/* ─── Ribbon Tabs ─── */
+.ribbon-tabs {
+  background: var(--ribbon-bg);
+  display: flex;
+  padding: 0 8px;
+  gap: 0;
+  border-bottom: none;
+}
+
+.ribbon-tab {
+  padding: 6px 16px;
+  color: var(--ribbon-tab-inactive);
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  position: relative;
+  transition: color 0.15s;
+  user-select: none;
+}
+
+.ribbon-tab:hover { color: white; }
+
+.ribbon-tab.active {
+  color: var(--accent);
+  background: var(--ribbon-panel-bg);
+  border-radius: 3px 3px 0 0;
+  font-weight: 600;
+}
+
+.ribbon-tab.file-tab {
+  background: #1a3a6c;
+  color: white;
+  font-weight: 600;
+  border-radius: 3px 3px 0 0;
+  margin-right: 4px;
+}
+.ribbon-tab.file-tab:hover { background: #0f2a52; }
+
+/* ─── Ribbon Panel ─── */
+.ribbon-panel {
+  background: var(--ribbon-panel-bg);
+  border-bottom: 1px solid var(--ribbon-border);
+  min-height: 90px;
+  display: flex;
+  align-items: stretch;
+  padding: 4px 8px;
+  gap: 0;
+}
+
+.ribbon-group {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 12px;
+  border-right: 1px solid var(--ribbon-border);
+  position: relative;
+}
+
+.ribbon-group:last-child { border-right: none; }
+
+.ribbon-group-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.ribbon-group-content {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.ribbon-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  background: none;
+  cursor: pointer;
+  border-radius: 3px;
+  min-width: 56px;
+  font-size: 11px;
+  color: var(--text);
+}
+
+.ribbon-btn:hover {
+  background: rgba(0,0,0,0.05);
+  border-color: var(--ribbon-border);
+}
+
+.ribbon-btn.active {
+  background: var(--accent-lighter);
+  border-color: var(--accent-light);
+}
+
+.ribbon-btn-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.ribbon-btn-sm {
+  flex-direction: row;
+  min-width: auto;
+  padding: 3px 8px;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.ribbon-btn-sm .ribbon-btn-icon { font-size: 14px; }
+
+.font-preview {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border: 1px solid var(--ribbon-border);
+  border-radius: 3px;
+  background: white;
+  font-size: 12px;
+  min-width: 140px;
+}
+
+.font-size-box {
+  width: 40px;
+  padding: 3px 6px;
+  border: 1px solid var(--ribbon-border);
+  border-radius: 3px;
+  background: white;
+  font-size: 12px;
+  text-align: center;
+}
+
+.format-buttons {
+  display: flex;
+  gap: 1px;
+}
+
+.fmt-btn {
+  width: 28px;
+  height: 26px;
+  border: 1px solid transparent;
+  background: none;
+  cursor: pointer;
+  border-radius: 2px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+}
+
+.fmt-btn:hover { background: rgba(0,0,0,0.06); border-color: var(--ribbon-border); }
+.fmt-btn b { font-weight: 900; }
+.fmt-btn i { font-style: italic; }
+
+/* ─── Ruler ─── */
+.ruler {
+  background: var(--ruler-bg);
+  border-bottom: 1px solid var(--ribbon-border);
+  height: 22px;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 var(--sidebar-width);
+  overflow: hidden;
+}
+
+.ruler-marks {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: flex-end;
+  padding: 0 40px;
+}
+
+.ruler-mark {
+  flex: 1;
+  text-align: center;
+  font-size: 9px;
+  color: var(--text-muted);
+  border-left: 1px solid #ccc;
+  padding-bottom: 2px;
+}
+
+/* ─── Main Layout ─── */
+.main-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ─── Sidebar (Navigation Pane) ─── */
+.sidebar {
+  width: var(--sidebar-width);
+  background: white;
+  border-right: 1px solid var(--ribbon-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar-header {
+  padding: 10px 14px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  border-bottom: 1px solid var(--ribbon-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar-header-title { display: flex; align-items: center; gap: 6px; }
+
+.sidebar-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--ribbon-border);
+}
+
+.sidebar-tab {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 11px;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+}
+
+.sidebar-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+.nav-section {
+  margin-bottom: 2px;
+}
+
+.nav-section-title {
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nav-item {
+  display: block;
+  padding: 5px 14px 5px 24px;
+  font-size: 12px;
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.12s;
+}
+
+.nav-item:hover {
+  background: var(--accent-lighter);
+  border-left-color: var(--accent-light);
+}
+
+.nav-item.active {
+  background: var(--accent-lighter);
+  border-left-color: var(--accent);
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.nav-item.sub {
+  padding-left: 36px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.nav-item.sub:hover { color: var(--accent); }
+
+/* ─── Document Area ─── */
+.document-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 30px 40px 60px;
+  display: flex;
+  justify-content: center;
+  scroll-behavior: smooth;
+}
+
+.document-paper {
+  background: var(--paper);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04);
+  max-width: 850px;
+  width: 100%;
+  min-height: 100%;
+  padding: 60px 72px 80px;
+}
+
+/* ─── Document Content Styles ─── */
+.doc-title {
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--accent);
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 12px;
+}
+
+.doc-subtitle {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin-bottom: 40px;
+  font-weight: 300;
+}
+
+.doc-version {
+  display: inline-block;
+  background: var(--accent);
+  color: white;
+  font-size: 11px;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-weight: 600;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+section {
+  margin-bottom: 36px;
+  scroll-margin-top: 20px;
+}
+
+h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--accent-lighter);
+}
+
+h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin: 20px 0 10px;
+}
+
+h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 16px 0 8px;
+}
+
+p {
+  font-size: 13.5px;
+  line-height: 1.7;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+/* Word-style tables */
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0 20px;
+  font-size: 13px;
+}
+
+.doc-table th {
+  background: var(--table-header);
+  color: white;
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.doc-table td {
+  padding: 7px 12px;
+  border-bottom: 1px solid #ddd;
+  vertical-align: top;
+}
+
+.doc-table tr:nth-child(even) td { background: var(--table-alt); }
+.doc-table tr:hover td { background: #ccd9ef; }
+
+.doc-table code {
+  background: rgba(0,0,0,0.06);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 12px;
+}
+
+/* Font showcase */
+.font-showcase {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 14px 0 20px;
+}
+
+.font-card {
+  border: 1px solid var(--ribbon-border);
+  border-radius: 4px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: box-shadow 0.15s;
+}
+
+.font-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.font-card-sample {
+  font-size: 28px;
+  line-height: 1;
+  min-width: 50px;
+  text-align: center;
+  color: var(--accent);
+}
+
+.font-card-info { flex: 1; }
+
+.font-card-type {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.font-card-font {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.font-card-csharp {
+  font-size: 11px;
+  font-family: 'Courier Prime', monospace;
+  color: var(--accent-light);
+  margin-top: 2px;
+}
+
+.font-card-reason {
+  font-size: 10px;
+  color: #999;
+  font-style: italic;
+  margin-top: 3px;
+}
+
+/* Code blocks */
+.code-block {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 16px 20px;
+  border-radius: 4px;
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+  margin: 12px 0 18px;
+  position: relative;
+}
+
+.code-block .kw { color: #569cd6; }
+.code-block .str { color: #ce9178; }
+.code-block .num { color: #b5cea8; }
+.code-block .cm { color: #6a9955; }
+.code-block .fn { color: #dcdcaa; }
+.code-block .op { color: #d4d4d4; }
+.code-block .type { color: #4ec9b0; }
+
+.code-label {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  font-size: 10px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Inline code */
+code {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  background: #f0f2f5;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 12.5px;
+  color: #c7254e;
+}
+
+/* Callout boxes */
+.callout {
+  border-left: 4px solid var(--accent);
+  background: var(--accent-lighter);
+  padding: 12px 16px;
+  margin: 14px 0;
+  border-radius: 0 4px 4px 0;
+  font-size: 13px;
+}
+
+.callout.tip { border-left-color: var(--success); background: #e8f5e2; }
+.callout.warning { border-left-color: var(--warning); background: #fff8e1; }
+.callout.important { border-left-color: var(--danger); background: #ffeaea; }
+
+.callout-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.callout.tip .callout-title { color: var(--success); }
+.callout.warning .callout-title { color: #b8860b; }
+.callout.important .callout-title { color: var(--danger); }
+
+/* Visual table examples */
+.table-example {
+  border: 2px solid var(--accent);
+  margin: 14px 0 20px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.table-example-label {
+  background: var(--accent);
+  color: white;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.table-visual {
+  display: grid;
+  border-collapse: collapse;
+}
+
+.table-visual-cell {
+  border: 1px solid var(--table-border);
+  padding: 10px 14px;
+  font-size: 13px;
+  text-align: center;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.table-visual-cell.merged {
+  background: var(--accent-lighter);
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.table-visual-cell.true-cell { background: #e8f5e2; }
+.table-visual-cell.false-cell { background: #ffeaea; }
+.table-visual-cell.init-cell { background: #e8f0fe; }
+.table-visual-cell.cond-cell { background: #fff8e1; }
+.table-visual-cell.step-cell { background: #f3e8fd; }
+.table-visual-cell.body-cell { background: #f8f9fa; }
+
+/* Pipeline diagram */
+.pipeline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin: 20px 0 24px;
+  flex-wrap: wrap;
+}
+
+.pipeline-stage {
+  background: var(--accent);
+  color: white;
+  padding: 12px 18px;
+  border-radius: 6px;
+  text-align: center;
+  min-width: 130px;
+  position: relative;
+}
+
+.pipeline-stage-num {
+  font-size: 10px;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 2px;
+}
+
+.pipeline-stage-name { font-weight: 700; font-size: 14px; }
+.pipeline-stage-detail { font-size: 11px; opacity: 0.85; margin-top: 3px; }
+
+.pipeline-arrow {
+  font-size: 24px;
+  color: var(--accent);
+  padding: 0 8px;
+  font-weight: 300;
+}
+
+/* Formatting examples */
+.fmt-example {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--ribbon-border);
+  border-radius: 4px;
+  margin: 8px 0;
+}
+
+.fmt-visual {
+  font-size: 18px;
+  min-width: 80px;
+  text-align: center;
+  padding: 6px 12px;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 3px;
+}
+
+.fmt-desc { font-size: 13px; flex: 1; }
+.fmt-result { font-family: 'Courier Prime', monospace; font-size: 12px; color: var(--accent-light); }
+
+/* Operator grid */
+.op-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+  margin: 12px 0 18px;
+}
+
+.op-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--ribbon-border);
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.op-symbol {
+  font-size: 20px;
+  font-weight: 700;
+  min-width: 32px;
+  text-align: center;
+  color: var(--accent);
+  font-family: 'Courier Prime', monospace;
+}
+
+.op-name { color: var(--text); }
+
+/* Status bar */
+.status-bar {
+  background: var(--ribbon-bg);
+  color: white;
+  font-size: 11px;
+  padding: 3px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 24px;
+}
+
+.status-left, .status-right { display: flex; gap: 16px; align-items: center; }
+.status-item { opacity: 0.8; }
+
+/* Badge */
+.badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.badge.implemented { background: var(--success); color: white; }
+.badge.partial { background: var(--warning); color: #333; }
+.badge.planned { background: #ccc; color: #555; }
+
+/* Scrollbar */
+.document-area::-webkit-scrollbar,
+.sidebar-nav::-webkit-scrollbar { width: 10px; }
+.document-area::-webkit-scrollbar-track,
+.sidebar-nav::-webkit-scrollbar-track { background: #f0f0f0; }
+.document-area::-webkit-scrollbar-thumb,
+.sidebar-nav::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 5px; border: 2px solid #f0f0f0; }
+.document-area::-webkit-scrollbar-thumb:hover,
+.sidebar-nav::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+/* Lists */
+ul, ol { margin: 8px 0 14px 24px; font-size: 13.5px; line-height: 1.7; }
+li { margin-bottom: 4px; }
+
+/* Expression precedence tower */
+.precedence-tower {
+  margin: 14px 0 20px;
+}
+
+.precedence-level {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--ribbon-border);
+  border-bottom: none;
+}
+
+.precedence-level:last-child { border-bottom: 1px solid var(--ribbon-border); }
+
+.precedence-rank {
+  min-width: 36px;
+  padding: 8px;
+  text-align: center;
+  font-weight: 700;
+  color: white;
+  font-size: 12px;
+}
+
+.precedence-name {
+  padding: 8px 14px;
+  font-weight: 600;
+  min-width: 140px;
+  font-size: 13px;
+}
+
+.precedence-ops {
+  padding: 8px 14px;
+  font-family: 'Courier Prime', monospace;
+  font-size: 13px;
+  color: var(--accent);
+  flex: 1;
+}
+
+/* Smooth transitions for active nav */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.section-divider {
+  border: none;
+  border-top: 1px solid var(--ribbon-border);
+  margin: 30px 0;
+}
+</style>
+</head>
+<body>
+
+<!-- Title Bar -->
+<div class="title-bar">
+  <div class="title-bar-icon">W</div>
+  <div class="quick-access" style="background:none;padding:0;">
+    <button class="qa-btn" title="Save">&#128190;</button>
+    <button class="qa-btn" title="Undo">&#8630;</button>
+    <button class="qa-btn" title="Redo">&#8631;</button>
+  </div>
+  <div class="title-bar-text">Wordy Language Reference &mdash; Official Documentation</div>
+  <div class="title-bar-buttons">
+    <button class="title-bar-btn">&#8211;</button>
+    <button class="title-bar-btn">&#9633;</button>
+    <button class="title-bar-btn close">&#10005;</button>
+  </div>
+</div>
+
+<!-- Ribbon Tabs -->
+<div class="ribbon-tabs">
+  <button class="ribbon-tab file-tab">File</button>
+  <button class="ribbon-tab active">Home</button>
+  <button class="ribbon-tab">Insert</button>
+  <button class="ribbon-tab">Design</button>
+  <button class="ribbon-tab">Layout</button>
+  <button class="ribbon-tab">References</button>
+  <button class="ribbon-tab">Review</button>
+  <button class="ribbon-tab">View</button>
+</div>
+
+<!-- Ribbon Panel -->
+<div class="ribbon-panel">
+  <div class="ribbon-group">
+    <div class="ribbon-group-content">
+      <div class="font-preview">
+        <span style="font-family:'Courier New';font-size:13px;">Courier New</span>
+        <span style="color:#999;font-size:10px;">&#9660;</span>
+      </div>
+      <div class="font-size-box">12</div>
+    </div>
+    <div class="ribbon-group-content">
+      <div class="format-buttons">
+        <button class="fmt-btn" title="Bold = Bracket"><b>B</b></button>
+        <button class="fmt-btn" title="Italic = String Literal"><i>I</i></button>
+        <button class="fmt-btn" style="text-decoration:underline;" title="Underline">U</button>
+        <button class="fmt-btn" title="Strikethrough"><s>ab</s></button>
+        <button class="fmt-btn">x<sup style="font-size:8px;">2</sup></button>
+        <button class="fmt-btn">x<sub style="font-size:8px;">2</sub></button>
+      </div>
+    </div>
+    <span class="ribbon-group-label">Font = Types &amp; Casting</span>
+  </div>
+
+  <div class="ribbon-group">
+    <div class="ribbon-group-content">
+      <div style="display:flex;flex-direction:column;gap:2px;">
+        <button class="ribbon-btn ribbon-btn-sm"><span class="ribbon-btn-icon">&#8592;</span> Left</button>
+        <button class="ribbon-btn ribbon-btn-sm"><span class="ribbon-btn-icon">&#8594;</span> Right = Return</button>
+        <button class="ribbon-btn ribbon-btn-sm"><span class="ribbon-btn-icon">&#8596;</span> Center</button>
+      </div>
+    </div>
+    <span class="ribbon-group-label">Paragraph</span>
+  </div>
+
+  <div class="ribbon-group">
+    <div class="ribbon-group-content">
+      <button class="ribbon-btn">
+        <span class="ribbon-btn-icon" style="font-size:18px;font-weight:700;">H1</span>
+        <span>Heading</span>
+      </button>
+      <button class="ribbon-btn">
+        <span class="ribbon-btn-icon" style="font-size:14px;color:var(--text-muted);">Subtitle</span>
+        <span>Params</span>
+      </button>
+      <button class="ribbon-btn">
+        <span class="ribbon-btn-icon" style="font-size:28px;line-height:0.8;">D</span>
+        <span>Drop Cap</span>
+      </button>
+    </div>
+    <span class="ribbon-group-label">Styles = Functions</span>
+  </div>
+
+  <div class="ribbon-group">
+    <div class="ribbon-group-content">
+      <button class="ribbon-btn">
+        <span class="ribbon-btn-icon">&#9638;</span>
+        <span>Table</span>
+      </button>
+    </div>
+    <span class="ribbon-group-label">Control Flow</span>
+  </div>
+</div>
+
+<!-- Ruler -->
+<div class="ruler">
+  <div class="ruler-marks">
+    <span class="ruler-mark">1</span><span class="ruler-mark">2</span>
+    <span class="ruler-mark">3</span><span class="ruler-mark">4</span>
+    <span class="ruler-mark">5</span><span class="ruler-mark">6</span>
+    <span class="ruler-mark">7</span><span class="ruler-mark">8</span>
+    <span class="ruler-mark">9</span><span class="ruler-mark">10</span>
+    <span class="ruler-mark">11</span><span class="ruler-mark">12</span>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-container">
+
+  <!-- Sidebar / Navigation Pane -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-header-title">&#128196; Navigation</span>
+      <span style="font-size:10px;color:var(--text-muted);">&#10005;</span>
+    </div>
+    <div class="sidebar-tabs">
+      <button class="sidebar-tab active">Headings</button>
+      <button class="sidebar-tab">Pages</button>
+      <button class="sidebar-tab">Results</button>
+    </div>
+    <div class="sidebar-nav" id="sidebar-nav">
+      <div class="nav-section">
+        <a class="nav-item" data-target="overview">Overview</a>
+        <a class="nav-item sub" data-target="pipeline">Compilation Pipeline</a>
+        <a class="nav-item sub" data-target="usage">Usage</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Core Concepts</div>
+        <a class="nav-item" data-target="type-system">Type System</a>
+        <a class="nav-item" data-target="functions">Functions</a>
+        <a class="nav-item sub" data-target="entry-point">Entry Point</a>
+        <a class="nav-item sub" data-target="parameters">Parameters</a>
+        <a class="nav-item sub" data-target="return">Return Values</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Language Features</div>
+        <a class="nav-item" data-target="variables">Variables &amp; Assignment</a>
+        <a class="nav-item" data-target="expressions">Expressions</a>
+        <a class="nav-item sub" data-target="operators">Operators</a>
+        <a class="nav-item sub" data-target="precedence">Precedence</a>
+        <a class="nav-item sub" data-target="brackets">Formatting Brackets</a>
+        <a class="nav-item sub" data-target="string-literals">String Literals</a>
+        <a class="nav-item sub" data-target="type-casting">Type Casting</a>
+        <a class="nav-item sub" data-target="superscript">Superscript &amp; Subscript</a>
+        <a class="nav-item" data-target="control-flow">Control Flow</a>
+        <a class="nav-item sub" data-target="if-stmt">If Statements</a>
+        <a class="nav-item sub" data-target="match-stmt">Match Statements</a>
+        <a class="nav-item sub" data-target="for-loop">For Loops</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Statements</div>
+        <a class="nav-item" data-target="print">Print</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Reference</div>
+        <a class="nav-item" data-target="formatting-ref">Formatting Reference</a>
+        <a class="nav-item" data-target="debug">Debug Flags</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document -->
+  <div class="document-area" id="document-area">
+    <div class="document-paper">
+
+      <!-- Title -->
+      <h1 class="doc-title">Wordy Language Reference <span class="doc-version">v0.1</span></h1>
+      <p class="doc-subtitle">The programming language where your source code is a Word document.</p>
+
+      <!-- Overview -->
+      <section id="overview">
+        <h2>Overview</h2>
+        <p>
+          <strong>Wordy</strong> is an esoteric programming language where source code is written in
+          Microsoft Word <code>.docx</code> files. Rather than using traditional text-based syntax, Wordy
+          uses Word's rich formatting features &mdash; fonts, styles, tables, text alignment, and
+          typographic effects &mdash; as its syntax.
+        </p>
+        <p>
+          Types are determined by <em>font family</em>. Functions are defined by <em>headings</em>.
+          Control flow lives inside <em>tables</em>. Return statements are <em>right-aligned paragraphs</em>.
+          Grouping expressions uses <strong>bold</strong> and
+          <span style="background:#ffff00;padding:0 3px;">highlighted</span> text instead of parentheses.
+          <em>Italic</em> text denotes string literals. Changing the <em>font</em> of a value casts it to a different type.
+        </p>
+
+        <div class="callout tip">
+          <div class="callout-title">Philosophy</div>
+          Every formatting feature in Microsoft Word maps to a programming concept. If you know how to use Word, you know how to write Wordy.
+        </div>
+      </section>
+
+      <!-- Pipeline -->
+      <section id="pipeline">
+        <h3>Compilation Pipeline</h3>
+        <p>Wordy compiles <code>.docx</code> files through a four-phase pipeline, ultimately transpiling to C# and executing via Roslyn:</p>
+        <div class="pipeline">
+          <div class="pipeline-stage">
+            <div class="pipeline-stage-num">Phase 1</div>
+            <div class="pipeline-stage-name">DocumentReader</div>
+            <div class="pipeline-stage-detail">.docx &rarr; DocumentIR</div>
+          </div>
+          <div class="pipeline-arrow">&rarr;</div>
+          <div class="pipeline-stage">
+            <div class="pipeline-stage-num">Phase 2</div>
+            <div class="pipeline-stage-name">Parser</div>
+            <div class="pipeline-stage-detail">DocumentIR &rarr; AST</div>
+          </div>
+          <div class="pipeline-arrow">&rarr;</div>
+          <div class="pipeline-stage">
+            <div class="pipeline-stage-num">Phase 3</div>
+            <div class="pipeline-stage-name">CSharpEmitter</div>
+            <div class="pipeline-stage-detail">AST &rarr; C# source</div>
+          </div>
+          <div class="pipeline-arrow">&rarr;</div>
+          <div class="pipeline-stage">
+            <div class="pipeline-stage-num">Phase 4</div>
+            <div class="pipeline-stage-name">Compiler</div>
+            <div class="pipeline-stage-detail">C# &rarr; Execute (Roslyn)</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Usage -->
+      <section id="usage">
+        <h3>Usage</h3>
+        <div class="code-block">
+          <span class="code-label">Shell</span>
+<span class="cm"># Run a Wordy program</span>
+wordy MyProgram.docx
+
+<span class="cm"># Dump the intermediate representation</span>
+wordy MyProgram.docx <span class="op">--dump-ir</span>
+
+<span class="cm"># Dump raw OpenXML structure</span>
+wordy MyProgram.docx <span class="op">--dump-raw</span>
+
+<span class="cm"># Emit generated C# without executing</span>
+wordy MyProgram.docx <span class="op">--emit</span>
+        </div>
+      </section>
+
+      <hr class="section-divider">
+
+      <!-- Type System -->
+      <section id="type-system">
+        <h2>Type System</h2>
+        <p>
+          In Wordy, the <strong>font family</strong> of text determines its type. Each font maps to a
+          specific data type, with a thematic rationale for each pairing.
+        </p>
+
+        <div class="font-showcase">
+          <div class="font-card">
+            <div class="font-card-sample" style="font-family:'Courier New',monospace;">42</div>
+            <div class="font-card-info">
+              <div class="font-card-type">Int</div>
+              <div class="font-card-font">Courier New</div>
+              <div class="font-card-csharp">&rarr; int</div>
+              <div class="font-card-reason">Monospaced &amp; rigid, like counting</div>
+            </div>
+          </div>
+          <div class="font-card">
+            <div class="font-card-sample" style="font-family:'Segoe Script','Lucida Handwriting',cursive;">3.14</div>
+            <div class="font-card-info">
+              <div class="font-card-type">Float</div>
+              <div class="font-card-font">Script / Cursive</div>
+              <div class="font-card-csharp">&rarr; double</div>
+              <div class="font-card-reason">Flowing &amp; imprecise, like decimals</div>
+            </div>
+          </div>
+          <div class="font-card">
+            <div class="font-card-sample" style="font-family:'Times New Roman',serif;">"Hi"</div>
+            <div class="font-card-info">
+              <div class="font-card-type">String</div>
+              <div class="font-card-font">Times New Roman</div>
+              <div class="font-card-csharp">&rarr; string</div>
+              <div class="font-card-reason">The literary font for text</div>
+            </div>
+          </div>
+          <div class="font-card">
+            <div class="font-card-sample" style="font-family:'Comic Sans MS','Comic Neue',cursive;">true</div>
+            <div class="font-card-info">
+              <div class="font-card-type">Bool</div>
+              <div class="font-card-font">Comic Sans MS</div>
+              <div class="font-card-csharp">&rarr; bool</div>
+              <div class="font-card-reason">Love it or hate it &mdash; binary</div>
+            </div>
+          </div>
+          <div class="font-card">
+            <div class="font-card-sample" style="font-family:'Symbol',serif;">&#945;</div>
+            <div class="font-card-info">
+              <div class="font-card-type">Char</div>
+              <div class="font-card-font">Symbol</div>
+              <div class="font-card-csharp">&rarr; char</div>
+              <div class="font-card-reason">Individual symbols</div>
+            </div>
+          </div>
+          <div class="font-card">
+            <div class="font-card-sample" style="font-family:'Wingdings',serif;">&#9830;</div>
+            <div class="font-card-info">
+              <div class="font-card-type">Void</div>
+              <div class="font-card-font">Wingdings</div>
+              <div class="font-card-csharp">&rarr; void</div>
+              <div class="font-card-reason">Unreadable text = returns nothing</div>
+            </div>
+          </div>
+          <div class="font-card">
+            <div class="font-card-sample" style="font-family:'Impact',sans-serif;">ERR</div>
+            <div class="font-card-info">
+              <div class="font-card-type">Error</div>
+              <div class="font-card-font">Impact</div>
+              <div class="font-card-csharp">&rarr; Exception</div>
+              <div class="font-card-reason">Impact hits hard, like errors</div>
+            </div>
+          </div>
+          <div class="font-card">
+            <div class="font-card-sample" style="font-family:'Calibri',sans-serif;">auto</div>
+            <div class="font-card-info">
+              <div class="font-card-type">Auto</div>
+              <div class="font-card-font">Calibri (default)</div>
+              <div class="font-card-csharp">&rarr; dynamic</div>
+              <div class="font-card-reason">Default font = inferred type</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">Font Matching</div>
+          Script/cursive fonts include <code>Brush Script MT</code>, <code>Lucida Handwriting</code>, and <code>Segoe Script</code>.
+          The font <code>Cambria Math</code> is treated as Auto, since it is a Word equation font rather than a type indicator.
+        </div>
+      </section>
+
+      <hr class="section-divider">
+
+      <!-- Functions -->
+      <section id="functions">
+        <h2>Functions</h2>
+        <p>
+          Functions are declared using <strong>Word heading styles</strong> (Heading 1, Heading 2, etc.).
+          The heading text becomes the function name, and the heading's <em>font</em> determines the return type.
+        </p>
+
+        <div class="fmt-example">
+          <div class="fmt-visual" style="font-family:'Courier New';font-size:22px;font-weight:700;color:var(--accent);">Factorial</div>
+          <div>
+            <div class="fmt-desc">A heading in <strong>Courier New</strong> with Heading 1 style</div>
+            <div class="fmt-result">Declares function <code>Factorial</code> returning <code>int</code></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Entry Point -->
+      <section id="entry-point">
+        <h3>Entry Point (Main)</h3>
+        <p>
+          The program entry point is declared using a <strong>Drop Cap</strong> paragraph.
+          In Word, a drop cap is a large initial letter at the start of a paragraph (Format &rarr; Drop Cap).
+          The paragraph with a drop cap becomes the <code>Main</code> function.
+        </p>
+        <div class="callout tip">
+          <div class="callout-title">Print Shorthand</div>
+          If the drop cap paragraph text starts with "print", the remaining text is treated as an argument
+          to a print statement. This provides a convenient one-line hello-world.
+        </div>
+      </section>
+
+      <!-- Parameters -->
+      <section id="parameters">
+        <h3>Parameters</h3>
+        <p>
+          Function parameters are declared in a <strong>Subtitle</strong>-styled paragraph immediately
+          after the heading, or in a plain paragraph with typed-font runs. Each run's text is the
+          parameter name and its <em>font determines the type</em>.
+        </p>
+        <div class="fmt-example">
+          <div class="fmt-visual">
+            <span style="font-family:'Courier New';">n</span>
+            &nbsp;
+            <span style="font-family:'Times New Roman';">label</span>
+          </div>
+          <div>
+            <div class="fmt-desc">Subtitle paragraph with two runs</div>
+            <div class="fmt-result"><code>n: int</code>, <code>label: string</code></div>
+          </div>
+        </div>
+        <p>Parameter names are case-insensitive and stored in lowercase internally.</p>
+      </section>
+
+      <!-- Return Values -->
+      <section id="return">
+        <h3>Return Values</h3>
+        <p>
+          A <strong>right-aligned paragraph</strong> is a return statement. The expression in the
+          paragraph is evaluated and returned from the current function.
+        </p>
+        <div class="fmt-example">
+          <div class="fmt-visual" style="text-align:right;min-width:120px;">
+            <span style="color:var(--text-muted);font-size:12px;">&#8594;&nbsp;</span>n &times; result
+          </div>
+          <div>
+            <div class="fmt-desc">Right-aligned paragraph</div>
+            <div class="fmt-result">Equivalent to <code>return n * result;</code></div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="section-divider">
+
+      <!-- Variables -->
+      <section id="variables">
+        <h2>Variables &amp; Assignment</h2>
+        <p>
+          Assignment uses the <strong>leftward arrow</strong> symbol <code>&larr;</code> (Unicode U+2190).
+          The first assignment to a name implicitly declares the variable.
+        </p>
+        <div class="code-block">
+          <span class="code-label">Wordy</span>
+result <span class="op">&larr;</span> <span class="num">1</span>          <span class="cm">&larr; declares &amp; assigns (var result = 1;)</span>
+result <span class="op">&larr;</span> result <span class="op">&times;</span> n   <span class="cm">&larr; reassigns         (result = result * n;)</span>
+        </div>
+        <p>Identifiers are <strong>case-insensitive</strong>. They are sanitized to PascalCase in the generated C# output, with special characters replaced by underscores.</p>
+      </section>
+
+      <hr class="section-divider">
+
+      <!-- Expressions -->
+      <section id="expressions">
+        <h2>Expressions</h2>
+        <p>
+          Wordy supports a full expression language with literals, variables, binary and unary operators,
+          function calls, array access, and exponentiation &mdash; all parsed via a recursive descent parser.
+        </p>
+
+        <h4>Literals</h4>
+        <table class="doc-table">
+          <tr><th>Kind</th><th>Example</th><th>Notes</th></tr>
+          <tr><td>Number</td><td><code>42</code>, <code>3.14</code></td><td>Parsed from text content</td></tr>
+          <tr><td>String</td><td><em>Hello World</em></td><td>Italic-formatted text (see <a href="#string-literals">String Literals</a>)</td></tr>
+          <tr><td>Boolean</td><td><code>true</code>, <code>false</code></td><td>Literal text values</td></tr>
+        </table>
+
+        <h4>Variable References</h4>
+        <p>Any identifier token that is not a keyword or followed by a bracket is treated as a variable reference. Names are lowercased internally.</p>
+
+        <h4>Function Calls</h4>
+        <p>A function call is an identifier followed by a <strong>formatting bracket</strong> containing the argument. Juxtaposition inside brackets also triggers call parsing.</p>
+        <div class="code-block">
+          <span class="code-label">Wordy</span>
+<span class="fn">factorial</span><span class="op">(</span>n <span class="op">&minus;</span> <span class="num">1</span><span class="op">)</span>    <span class="cm">&larr; bold text around "n − 1" creates a grouping bracket</span>
+        </div>
+      </section>
+
+      <!-- Operators -->
+      <section id="operators">
+        <h3>Operators</h3>
+        <p>Wordy uses Unicode mathematical symbols for operators, mirroring how they appear in formatted documents:</p>
+
+        <h4>Arithmetic</h4>
+        <div class="op-grid">
+          <div class="op-card"><div class="op-symbol">+</div><div class="op-name">Addition</div></div>
+          <div class="op-card"><div class="op-symbol">&minus;</div><div class="op-name">Subtraction</div></div>
+          <div class="op-card"><div class="op-symbol">&times;</div><div class="op-name">Multiplication</div></div>
+          <div class="op-card"><div class="op-symbol">&divide;</div><div class="op-name">Division</div></div>
+          <div class="op-card"><div class="op-symbol">%</div><div class="op-name">Modulo</div></div>
+        </div>
+
+        <h4>Comparison</h4>
+        <div class="op-grid">
+          <div class="op-card"><div class="op-symbol">=</div><div class="op-name">Equal</div></div>
+          <div class="op-card"><div class="op-symbol">!=</div><div class="op-name">Not Equal</div></div>
+          <div class="op-card"><div class="op-symbol">&lt;</div><div class="op-name">Less Than</div></div>
+          <div class="op-card"><div class="op-symbol">&gt;</div><div class="op-name">Greater Than</div></div>
+          <div class="op-card"><div class="op-symbol">&lt;=</div><div class="op-name">Less or Equal</div></div>
+          <div class="op-card"><div class="op-symbol">&gt;=</div><div class="op-name">Greater or Equal</div></div>
+        </div>
+
+        <h4>Logical</h4>
+        <div class="op-grid">
+          <div class="op-card"><div class="op-symbol">&and;</div><div class="op-name">Logical AND</div></div>
+          <div class="op-card"><div class="op-symbol">&or;</div><div class="op-name">Logical OR</div></div>
+        </div>
+
+        <h4>Assignment</h4>
+        <div class="op-grid">
+          <div class="op-card"><div class="op-symbol">&larr;</div><div class="op-name">Assign</div></div>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">Note</div>
+          Both the Unicode minus <code>&minus;</code> (U+2212) and the ASCII hyphen <code>-</code> are recognized as subtraction operators. Equality uses a single <code>=</code>, not <code>==</code>.
+        </div>
+      </section>
+
+      <!-- Precedence -->
+      <section id="precedence">
+        <h3>Operator Precedence</h3>
+        <p>From lowest to highest precedence:</p>
+        <div class="precedence-tower">
+          <div class="precedence-level">
+            <div class="precedence-rank" style="background:#c0392b;">1</div>
+            <div class="precedence-name">Logical OR</div>
+            <div class="precedence-ops">&or;</div>
+          </div>
+          <div class="precedence-level">
+            <div class="precedence-rank" style="background:#e67e22;">2</div>
+            <div class="precedence-name">Logical AND</div>
+            <div class="precedence-ops">&and;</div>
+          </div>
+          <div class="precedence-level">
+            <div class="precedence-rank" style="background:#f1c40f;color:#333;">3</div>
+            <div class="precedence-name">Comparison</div>
+            <div class="precedence-ops">= &nbsp; != &nbsp; &lt; &nbsp; &gt; &nbsp; &lt;= &nbsp; &gt;=</div>
+          </div>
+          <div class="precedence-level">
+            <div class="precedence-rank" style="background:#2ecc71;">4</div>
+            <div class="precedence-name">Additive</div>
+            <div class="precedence-ops">+ &nbsp; &minus;</div>
+          </div>
+          <div class="precedence-level">
+            <div class="precedence-rank" style="background:#3498db;">5</div>
+            <div class="precedence-name">Multiplicative</div>
+            <div class="precedence-ops">&times; &nbsp; &divide; &nbsp; %</div>
+          </div>
+          <div class="precedence-level">
+            <div class="precedence-rank" style="background:#8e44ad;">6</div>
+            <div class="precedence-name">Primary</div>
+            <div class="precedence-ops">literals, variables, calls, brackets</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Formatting Brackets -->
+      <section id="brackets">
+        <h3>Formatting as Brackets</h3>
+        <p>
+          Instead of parentheses, Wordy uses <strong>text formatting changes</strong> to group expressions.
+          When a formatting property is <em>turned on</em>, it acts as an opening bracket. When it's
+          <em>turned off</em>, it acts as a closing bracket.
+        </p>
+
+        <table class="doc-table">
+          <tr><th>Formatting</th><th>Effect</th><th>Bracket Type</th></tr>
+          <tr><td><strong>Bold</strong></td><td>Toggle on/off</td><td>Open/Close group</td></tr>
+          <tr><td><span style="background:#ffff00;padding:0 3px;">Highlight</span></td><td>Any highlight color on/off</td><td>Open/Close group</td></tr>
+        </table>
+
+        <div class="callout">
+          <div class="callout-title">Note</div>
+          Italic text is <strong>not</strong> a bracket type &mdash; it is reserved for <a href="#string-literals">string literals</a>.
+        </div>
+
+        <p>Multiple formatting types can nest, enabling nested grouping:</p>
+
+        <div class="fmt-example">
+          <div class="fmt-visual">
+            a + <strong>b &times; <span style="background:#ffff00;padding:0 3px;">c + d</span></strong>
+          </div>
+          <div>
+            <div class="fmt-desc">Bold opens outer group, highlight opens inner group</div>
+            <div class="fmt-result"><code>a + (b * (c + d))</code></div>
+          </div>
+        </div>
+
+        <div class="callout warning">
+          <div class="callout-title">Careful</div>
+          Formatting brackets are tracked via a stack. Each unique formatting flag (bold, highlight) that turns on pushes to the stack; turning off pops matching entries. Mismatched formatting may produce unexpected grouping.
+        </div>
+      </section>
+
+      <!-- String Literals -->
+      <section id="string-literals">
+        <h3>String Literals (Italic Text)</h3>
+        <p>
+          <em>Italic</em> text is treated as a <strong>string literal</strong>. The raw text content is
+          preserved exactly as written &mdash; operators and whitespace within italic runs are not parsed.
+        </p>
+
+        <div class="fmt-example">
+          <div class="fmt-visual"><em>Hello World!</em></div>
+          <div>
+            <div class="fmt-desc">Italic text in Word</div>
+            <div class="fmt-result">Equivalent to <code>"Hello World!"</code></div>
+          </div>
+        </div>
+
+        <div class="callout tip">
+          <div class="callout-title">No Quotes Needed</div>
+          Unlike most languages, Wordy doesn't use quotation marks for strings. Simply italicize text in Word to make it a string literal.
+        </div>
+      </section>
+
+      <!-- Type Casting -->
+      <section id="type-casting">
+        <h3>Type Casting</h3>
+        <p>
+          Changing the <strong>font</strong> of a variable or number expression casts it to the corresponding
+          type. If a variable or number appears in a type-indicating font (not Calibri/Auto), a cast
+          expression is generated.
+        </p>
+
+        <table class="doc-table">
+          <tr><th>Source</th><th>Font Applied</th><th>Generated C#</th></tr>
+          <tr><td>A number <code>42</code></td><td>Times New Roman</td><td><code>42.ToString()</code></td></tr>
+          <tr><td>A variable <code>x</code></td><td>Courier New</td><td><code>((int)(X))</code></td></tr>
+          <tr><td>A variable <code>y</code></td><td>Script/Cursive</td><td><code>((double)(Y))</code></td></tr>
+          <tr><td>A variable <code>n</code></td><td>Comic Sans MS</td><td><code>Convert.ToBoolean(N)</code></td></tr>
+          <tr><td>A variable <code>c</code></td><td>Symbol</td><td><code>Convert.ToChar(C)</code></td></tr>
+        </table>
+
+        <div class="callout">
+          <div class="callout-title">Note</div>
+          Numbers in numeric fonts (Courier New for Int, Script for Float) are <em>not</em> cast, since they are already the natural numeric type. Casting only applies when the font implies a different type than the expression's natural type.
+        </div>
+      </section>
+
+      <!-- Superscript & Subscript -->
+      <section id="superscript">
+        <h3>Superscript &amp; Subscript</h3>
+        <p>Word's superscript and subscript formatting map to mathematical operations:</p>
+
+        <table class="doc-table">
+          <tr><th>Formatting</th><th>Operation</th><th>Example</th><th>Equivalent</th></tr>
+          <tr>
+            <td>Superscript</td>
+            <td>Exponentiation</td>
+            <td>x<sup>2</sup></td>
+            <td><code>Math.Pow(x, 2)</code></td>
+          </tr>
+          <tr>
+            <td>Subscript</td>
+            <td>Array/Index Access</td>
+            <td>arr<sub>i</sub></td>
+            <td><code>arr[i]</code></td>
+          </tr>
+        </table>
+      </section>
+
+      <hr class="section-divider">
+
+      <!-- Control Flow -->
+      <section id="control-flow">
+        <h2>Control Flow</h2>
+        <p>
+          All control flow in Wordy is expressed through <strong>Word tables</strong>. The structure and
+          shape of the table determine which control flow construct it represents.
+        </p>
+      </section>
+
+      <!-- If Statement -->
+      <section id="if-stmt">
+        <h3>If Statements</h3>
+        <p>
+          An if statement is a table with a <strong>single merged cell</strong> on top (the condition) and
+          <strong>two cells</strong> below (true and false branches).
+        </p>
+
+        <div class="table-example">
+          <div class="table-example-label">If Statement &mdash; Table Layout</div>
+          <div class="table-visual" style="grid-template-columns: 1fr 1fr;">
+            <div class="table-visual-cell merged" style="grid-column: 1 / -1;">condition expression</div>
+            <div class="table-visual-cell true-cell">true branch<br><small style="color:#666;">statements...</small></div>
+            <div class="table-visual-cell false-cell">false branch<br><small style="color:#666;">statements...</small></div>
+          </div>
+        </div>
+
+        <p>This supports both 2-row format (condition row + branch row) and 3-row format (condition + patterns + bodies).</p>
+
+        <div class="code-block">
+          <span class="code-label">Generated C#</span>
+<span class="kw">if</span> (condition)
+{
+    <span class="cm">// true branch</span>
+}
+<span class="kw">else</span>
+{
+    <span class="cm">// false branch</span>
+}
+        </div>
+      </section>
+
+      <!-- Match Statement -->
+      <section id="match-stmt">
+        <h3>Match Statements</h3>
+        <p>
+          A match/switch statement uses the same merged-top-cell structure but with <strong>more than two cells</strong>
+          in the rows below. Each cell represents a case.
+        </p>
+
+        <div class="table-example">
+          <div class="table-example-label">Match Statement &mdash; Table Layout</div>
+          <div class="table-visual" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+            <div class="table-visual-cell merged" style="grid-column: 1 / -1;">subject expression</div>
+            <div class="table-visual-cell" style="background:#e8f0fe;">
+              <div>pattern 1<br><small style="color:#666;">body...</small></div>
+            </div>
+            <div class="table-visual-cell" style="background:#f3e8fd;">
+              <div>pattern 2<br><small style="color:#666;">body...</small></div>
+            </div>
+            <div class="table-visual-cell" style="background:#fff8e1;">
+              <div>pattern 3<br><small style="color:#666;">body...</small></div>
+            </div>
+            <div class="table-visual-cell" style="background:#e8f5e2;">
+              <div><em>(empty)</em><br><small style="color:#666;">default...</small></div>
+            </div>
+          </div>
+        </div>
+
+        <p>Patterns can be <strong>comma-separated</strong> within a single cell to match multiple values (e.g. <code>3,6,9,12</code>). A cell with the text <code>_</code> (underscore) or no pattern becomes the <code>default</code> case.</p>
+
+        <p>Match statements also support a <strong>3-row format</strong> with separate pattern and body rows for more complex layouts.</p>
+      </section>
+
+      <!-- For Loop -->
+      <section id="for-loop">
+        <h3>For Loops</h3>
+        <p>
+          A for loop is a table with <strong>three cells</strong> in the top row:
+          initialization, condition, and step. The remaining rows form the loop body.
+        </p>
+
+        <div class="table-example">
+          <div class="table-example-label">For Loop &mdash; Table Layout</div>
+          <div class="table-visual" style="grid-template-columns: 1fr 1fr 1fr;">
+            <div class="table-visual-cell init-cell"><strong>init</strong><br><small>i &larr; 1</small></div>
+            <div class="table-visual-cell cond-cell"><strong>condition</strong><br><small>i &lt;= 100</small></div>
+            <div class="table-visual-cell step-cell"><strong>step</strong><br><small>i &larr; i + 1</small></div>
+            <div class="table-visual-cell body-cell" style="grid-column: 1 / -1;">
+              <strong>body</strong><br>
+              <small style="color:#666;">statements executed each iteration...</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="code-block">
+          <span class="code-label">Generated C#</span>
+<span class="kw">for</span> (<span class="kw">var</span> I = <span class="num">1</span>; I <= <span class="num">100</span>; I = I + <span class="num">1</span>)
+{
+    <span class="cm">// body statements</span>
+}
+        </div>
+
+        <div class="callout tip">
+          <div class="callout-title">Nested Control Flow</div>
+          If the body rows of a for loop form a valid if/match table structure (single merged cell on top, multiple cells below), they are automatically parsed as nested control flow rather than sequential statements.
+        </div>
+      </section>
+
+      <hr class="section-divider">
+
+      <!-- Print -->
+      <section id="print">
+        <h2>Print Statement</h2>
+        <p>There are two ways to print output:</p>
+        <ol>
+          <li><strong>Drop Cap print:</strong> A drop cap paragraph starting with "print" followed by the value to output.</li>
+          <li><strong>Function call:</strong> Calling <code>print</code> as a function &mdash; any call expression named "print" is converted to a <code>Console.WriteLine</code> statement.</li>
+        </ol>
+      </section>
+
+      <hr class="section-divider">
+
+      <!-- Formatting Reference -->
+      <section id="formatting-ref">
+        <h2>Formatting Reference</h2>
+        <p>Complete mapping of Word formatting features to Wordy language semantics:</p>
+
+        <table class="doc-table">
+          <tr><th>Word Feature</th><th>Wordy Semantics</th><th>Status</th></tr>
+          <tr><td>Font Family</td><td>Type system</td><td><span class="badge implemented">Implemented</span></td></tr>
+          <tr><td>Heading Styles</td><td>Function declarations</td><td><span class="badge implemented">Implemented</span></td></tr>
+          <tr><td>Subtitle Style</td><td>Parameter declarations</td><td><span class="badge implemented">Implemented</span></td></tr>
+          <tr><td>Drop Cap</td><td>Entry point (main)</td><td><span class="badge implemented">Implemented</span></td></tr>
+          <tr><td>Right Alignment</td><td>Return statement</td><td><span class="badge implemented">Implemented</span></td></tr>
+          <tr><td>Bold / Highlight</td><td>Expression grouping (brackets)</td><td><span class="badge implemented">Implemented</span></td></tr>
+          <tr><td>Italic</td><td>String literals</td><td><span class="badge implemented">Implemented</span></td></tr>
+          <tr><td>Font Change on Expression</td><td>Type casting</td><td><span class="badge implemented">Implemented</span></td></tr>
+          <tr><td>Superscript</td><td>Exponentiation</td><td><span class="badge implemented">Implemented</span></td></tr>
+          <tr><td>Subscript</td><td>Array/index access</td><td><span class="badge implemented">Implemented</span></td></tr>
+          <tr><td>Strikethrough</td><td>Delete / deallocate</td><td><span class="badge planned">Planned</span></td></tr>
+          <tr><td>Tables</td><td>Control flow (if/match/for)</td><td><span class="badge implemented">Implemented</span></td></tr>
+          <tr><td>Arrow symbol (&larr;)</td><td>Assignment</td><td><span class="badge implemented">Implemented</span></td></tr>
+          <tr><td>Small Caps</td><td>Constants</td><td><span class="badge partial">Recognized</span></td></tr>
+          <tr><td>Underline</td><td>TBD</td><td><span class="badge partial">Recognized</span></td></tr>
+          <tr><td>Font Size</td><td>Numeric literals</td><td><span class="badge partial">Recognized</span></td></tr>
+          <tr><td>Glow Effect</td><td>Print output</td><td><span class="badge planned">Planned</span></td></tr>
+          <tr><td>Shadow Effect</td><td>Copy / clone</td><td><span class="badge planned">Planned</span></td></tr>
+          <tr><td>Footnotes</td><td>Try / error handling</td><td><span class="badge planned">Planned</span></td></tr>
+          <tr><td>Endnotes</td><td>Deferred execution</td><td><span class="badge planned">Planned</span></td></tr>
+          <tr><td>Cross-references</td><td>Pointers</td><td><span class="badge planned">Planned</span></td></tr>
+          <tr><td>Bookmarks</td><td>Named references</td><td><span class="badge planned">Planned</span></td></tr>
+          <tr><td>Mail Merge Fields</td><td>Generics / templates</td><td><span class="badge planned">Planned</span></td></tr>
+          <tr><td>Bibliography</td><td>Imports / dependencies</td><td><span class="badge planned">Planned</span></td></tr>
+          <tr><td>Track Changes</td><td>Mutation visibility</td><td><span class="badge planned">Planned</span></td></tr>
+          <tr><td>Center Alignment</td><td>Assertions</td><td><span class="badge planned">Planned</span></td></tr>
+          <tr><td>Line Spacing</td><td>Delays</td><td><span class="badge planned">Planned</span></td></tr>
+        </table>
+      </section>
+
+      <!-- Debug Flags -->
+      <section id="debug">
+        <h2>Debug Flags</h2>
+        <table class="doc-table">
+          <tr><th>Flag</th><th>Description</th></tr>
+          <tr><td><code>--dump-ir</code></td><td>Print the parsed DocumentIR structure (paragraphs, runs, formatting properties, tables)</td></tr>
+          <tr><td><code>--dump-raw</code></td><td>Print the raw OpenXML tree with all properties (drop cap, justification, glow, etc.)</td></tr>
+          <tr><td><code>--emit</code></td><td>Print the generated C# source code without compiling or executing</td></tr>
+        </table>
+      </section>
+
+      <!-- Footer -->
+      <div style="margin-top:50px; padding-top:20px; border-top:2px solid var(--accent); text-align:center; color:var(--text-muted); font-size:12px;">
+        <p style="margin:0;">Wordy Language Reference &mdash; Generated from source code analysis</p>
+        <p style="margin:4px 0 0; font-size:11px;">Wordy transpiles to C# via Roslyn &bull; Source files are .docx &bull; Your IDE is Microsoft Word</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Status Bar -->
+<div class="status-bar">
+  <div class="status-left">
+    <span class="status-item">Page 1 of 1</span>
+    <span class="status-item">Words: &infin;</span>
+    <span class="status-item">English (United States)</span>
+  </div>
+  <div class="status-right">
+    <span class="status-item">&#128196; Print Layout</span>
+    <span class="status-item">100%</span>
+  </div>
+</div>
+
+<script>
+// Navigation
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const target = item.dataset.target;
+    const el = document.getElementById(target);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      item.classList.add('active');
+    }
+  });
+});
+
+// Track scroll position to highlight nav
+const docArea = document.getElementById('document-area');
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.nav-item[data-target]');
+
+docArea.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(section => {
+    const rect = section.getBoundingClientRect();
+    if (rect.top <= 200) current = section.id;
+  });
+  navItems.forEach(item => {
+    item.classList.toggle('active', item.dataset.target === current);
+  });
+});
+
+// Ribbon tab switching (cosmetic)
+document.querySelectorAll('.ribbon-tab:not(.file-tab)').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.ribbon-tab:not(.file-tab)').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>
