@@ -25,7 +25,7 @@ public static class CSharpEmitter
 
     private static void EmitFunction(StringBuilder sb, Function func, int indent)
     {
-        var returnType = func.IsEntryPoint ? "void" : TypeToCSharp(func.ReturnType);
+        var returnType = TypeToCSharp(func.ReturnType);
         var methodName = func.IsEntryPoint ? "Main" : SanitizeIdentifier(func.Name);
 
         Indent(sb, indent);
@@ -344,8 +344,8 @@ public static class CSharpEmitter
         WordyType.String => "string",
         WordyType.Bool => "bool",
         WordyType.Char => "char",
-        WordyType.Auto => "dynamic",
-        _ => "dynamic"
+        WordyType.Void => "void",
+        _ => "void"
     };
 
     private static string SanitizeIdentifier(string name)

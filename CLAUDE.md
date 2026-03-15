@@ -43,9 +43,7 @@ Font family determines type. Putting a value/variable in a type font casts it.
 | Comic Sans MS | bool |
 | Script/cursive | float |
 | Symbol | char |
-| Calibri | auto (inferred) |
-
-Any non-reserved font (e.g. Cambria Math) carries no type info — use it as neutral code text.
+Any non-reserved font (e.g. Calibri, Cambria Math) carries no type info — use it as neutral code text. Variables and parameters MUST use a type font; using a non-type font is a compilation error.
 
 Expression-level font casting: if ALL value tokens in an expression share the same type font, the entire expression result is cast (not individual tokens). E.g., `n % 2` all in Comic Sans → `Convert.ToBoolean(n % 2)`. The parser unwraps per-token casts and applies one expression-level cast.
 
@@ -124,7 +122,7 @@ dotnet run -- --gen comprehensive out.docx   # generate comprehensive test
 
 ## What's implemented
 
-Functions, multi-arg parameters, return (right-align), if/match/for, assignment (←), reassignment, unary negation, arithmetic (× ÷ − + %), exponentiation (superscript), logical (∨ ∧), comparison (= < > <= >= !=), formatting brackets (bold, highlight), multi-arg function calls (OCaml-style juxtaposition), font-based types and casting (per-token and expression-level), italic string literals, drop cap entry point, print built-in, match wildcards (_), comma-separated match patterns, nested control flow in tables (if inside for, for inside if), programmatic .docx generation for tests, Roslyn compilation.
+Functions, multi-arg parameters, return (right-align), if/match/for, assignment (←), reassignment, unary negation, arithmetic (× ÷ − + %), exponentiation (superscript), logical (∨ ∧), comparison (= < > <= >= !=), formatting brackets (bold, highlight), multi-arg function calls (OCaml-style juxtaposition), font-based types and casting (per-token and expression-level), italic string literals, drop cap entry point (void return), print built-in, match wildcards (_), comma-separated match patterns, nested control flow in tables (if inside for, for inside if), programmatic .docx generation for tests, Roslyn compilation. No dynamic types — all variables must have explicit type fonts.
 
 ## Documentation site
 
@@ -174,7 +172,7 @@ docs/               Existing docs (content integrated into web app)
 4. Ship .NET reference DLLs in `wwwroot/lib/` for Roslyn: System.Runtime, System.Private.CoreLib, System.Console, mscorlib, System.Collections, System.Linq.Expressions, Microsoft.CSharp, System.Core, netstandard, etc.
 5. Create `WordyCompiler` service: uploaded .docx stream → DocumentReader → Parser → CSharpEmitter → Roslyn compile with shipped references → Assembly.Load → redirect Console.Out → invoke entry point → return C# source + output + errors
 6. UI: Word-inspired theme (reuse ribbon styling from docs), file upload zone, generated C# panel, console output panel, docs tab
-7. `dynamic` type (Auto/Calibri) requires Microsoft.CSharp.dll + System.Linq.Expressions.dll as Roslyn references
+7. `dynamic` type was removed — all variables require explicit type fonts, entry point is void
 
 ## Design decisions and gotchas
 

@@ -98,15 +98,15 @@ public static class Parser
 
         return para.Runs.Any(r =>
             !string.IsNullOrWhiteSpace(r.Text) &&
-            FontToType(r.FontName) != WordyType.Auto);
+            FontToType(r.FontName) is not null);
     }
 
     private static WordyType DetectReturnType(ParagraphElement heading)
     {
         // The heading's font determines the function's return type
         var firstRun = heading.Runs.FirstOrDefault();
-        if (firstRun is null) return WordyType.Auto;
-        return FontToType(firstRun.FontName);
+        if (firstRun is null) return WordyType.Void;
+        return FontToType(firstRun.FontName) ?? WordyType.Void;
     }
 
     private static Function? ParseEntryPoint(List<DocumentElement> elements, ref int index)
@@ -168,7 +168,7 @@ public static class Parser
         }
 
         index--;
-        return new Function("Main", new List<Parameter>(), WordyType.Auto, body, true);
+        return new Function("Main", new List<Parameter>(), WordyType.Void, body, true);
     }
 
     private static List<Parameter> ParseParameters(ParagraphElement para)
@@ -180,7 +180,10 @@ public static class Parser
             if (string.IsNullOrEmpty(text)) continue;
 
             var type = FontToType(run.FontName);
-            parameters.Add(new Parameter(text.ToLowerInvariant(), type));
+            if (type is null)
+                throw new InvalidOperationException(
+                    $"Parameter '{text}' has no type font. Use a type font (Courier New = int, Times New Roman = string, Comic Sans MS = bool, cursive = float, Symbol = char).");
+            parameters.Add(new Parameter(text.ToLowerInvariant(), type.Value));
         }
         return parameters;
     }
@@ -516,13 +519,13 @@ public static class Parser
         {
             var fontTypes = valueTokens
                 .Select(t => t.FontType)
-                .Where(t => t != WordyType.Auto)
+                .Where(t => t is not null)
                 .Distinct()
                 .ToList();
 
             if (fontTypes.Count == 1)
             {
-                expr = new CastExpr(UnwrapCasts(expr), fontTypes[0]);
+                expr = new CastExpr(UnwrapCasts(expr), fontTypes[0]!.Value);
             }
         }
 
@@ -537,7 +540,7 @@ public static class Parser
         _ => expr
     };
 
-    private record Token(TokenKind Kind, string Value, FormattingState Fmt, WordyType FontType, string OriginalText, bool IsSuperscript = false);
+    private record Token(TokenKind Kind, string Value, FormattingState Fmt, WordyType? FontType, string OriginalText, bool IsSuperscript = false);
 
     private enum TokenKind
     {
@@ -572,7 +575,7 @@ public static class Parser
     private static List<Token> Tokenize(List<RunElement> runs)
     {
         // Step 1: Split runs into individual word/operator tokens with formatting + font type
-        var rawTokens = new List<(string Text, FormattingState Fmt, bool IsOperator, WordyType FontType, bool IsItalic, bool IsSuperscript)>();
+        var rawTokens = new List<(string Text, FormattingState Fmt, bool IsOperator, WordyType? FontType, bool IsItalic, bool IsSuperscript)>();
 
         foreach (var run in runs)
         {
@@ -632,7 +635,7 @@ public static class Parser
                 {
                     if ((removed & fmtStack[i]) != 0)
                     {
-                        tokens.Add(new Token(TokenKind.BracketClose, ")", fmt, WordyType.Auto, ")"));
+                        tokens.Add(new Token(TokenKind.BracketClose, ")", fmt, null, ")"));
                         removed &= ~fmtStack[i];
                         fmtStack.RemoveAt(i);
                     }
@@ -646,7 +649,7 @@ public static class Parser
                 {
                     if (flag != FormattingFlags.None && (added & flag) != 0)
                     {
-                        tokens.Add(new Token(TokenKind.BracketOpen, "(", fmt, WordyType.Auto, "("));
+                        tokens.Add(new Token(TokenKind.BracketOpen, "(", fmt, null, "("));
                         fmtStack.Add(flag);
                     }
                 }
@@ -676,7 +679,7 @@ public static class Parser
         // Close any remaining open brackets
         for (int i = fmtStack.Count - 1; i >= 0; i--)
         {
-            tokens.Add(new Token(TokenKind.BracketClose, ")", new FormattingState(FormattingFlags.None), WordyType.Auto, ")"));
+            tokens.Add(new Token(TokenKind.BracketClose, ")", new FormattingState(FormattingFlags.None), null, ")"));
         }
 
         return tokens;
@@ -881,11 +884,11 @@ public static class Parser
             double.TryParse(token.Value, out var val);
             Expr expr = new NumberLiteral(val);
 
-            if (token.FontType != WordyType.Auto &&
+            if (token.FontType is not null &&
                 token.FontType != WordyType.Int &&
                 token.FontType != WordyType.Float)
             {
-                expr = new CastExpr(expr, token.FontType);
+                expr = new CastExpr(expr, token.FontType.Value);
             }
 
             return expr;
@@ -912,8 +915,8 @@ public static class Parser
             }
 
             // Font-based casting: variable in a type font = cast
-            if (token.FontType != WordyType.Auto)
-                return new CastExpr(new VariableRef(name), token.FontType);
+            if (token.FontType is not null)
+                return new CastExpr(new VariableRef(name), token.FontType.Value);
 
             return new VariableRef(name);
         }
@@ -967,9 +970,9 @@ public static class Parser
         return string.Join("", para.Runs.Select(r => r.Text));
     }
 
-    public static WordyType FontToType(string? fontName)
+    public static WordyType? FontToType(string? fontName)
     {
-        if (fontName is null) return WordyType.Auto;
+        if (fontName is null) return null;
 
         return fontName.ToLowerInvariant() switch
         {
@@ -978,9 +981,7 @@ public static class Parser
             "comic sans ms" => WordyType.Bool,
             "brush script mt" or "lucida handwriting" or "segoe script" => WordyType.Float,
             "symbol" => WordyType.Char,
-            "calibri" => WordyType.Auto,
-            "cambria math" => WordyType.Auto, // equation font, not a type indicator
-            _ => WordyType.Auto
+            _ => null
         };
     }
 }

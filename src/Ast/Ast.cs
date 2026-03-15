@@ -9,7 +9,7 @@ public enum WordyType
     String,    // Times New Roman
     Bool,      // Comic Sans
     Char,      // Symbol
-    Auto       // Calibri (inferred)
+    Void       // No return value (entry point)
 }
 
 // --- Expressions ---

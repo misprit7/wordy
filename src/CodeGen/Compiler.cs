@@ -14,13 +14,10 @@ public static class Compiler
         {
             MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(Microsoft.CSharp.RuntimeBinder.Binder).Assembly.Location),
         };
 
-        // Add runtime assemblies needed for dynamic
         var runtimeDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
         references.Add(MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "System.Runtime.dll")));
-        references.Add(MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "System.Linq.Expressions.dll")));
 
         var compilation = CSharpCompilation.Create(
             "WordyProgram",
