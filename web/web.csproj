@@ -5,7 +5,6 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <PublishTrimmed>false</PublishTrimmed>
-    <WasmRuntimePack>$(NuGetPackageRoot)microsoft.netcore.app.runtime.mono.browser-wasm/8.0.13</WasmRuntimePack>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,22 +18,25 @@
     <ProjectReference Include="../src/wordy.csproj" />
   </ItemGroup>
 
-  <!-- Copy WASM runtime DLLs to wwwroot/lib/ for Roslyn in-browser compilation -->
-  <ItemGroup>
-    <WasmRoslynLib Include="$(WasmRuntimePack)/runtimes/browser-wasm/lib/net8.0/mscorlib.dll" />
-    <WasmRoslynLib Include="$(WasmRuntimePack)/runtimes/browser-wasm/lib/net8.0/System.dll" />
-    <WasmRoslynLib Include="$(WasmRuntimePack)/runtimes/browser-wasm/lib/net8.0/System.Console.dll" />
-    <WasmRoslynLib Include="$(WasmRuntimePack)/runtimes/browser-wasm/lib/net8.0/System.Core.dll" />
-    <WasmRoslynLib Include="$(WasmRuntimePack)/runtimes/browser-wasm/lib/net8.0/System.Runtime.dll" />
-    <WasmRoslynLib Include="$(WasmRuntimePack)/runtimes/browser-wasm/lib/net8.0/System.Collections.dll" />
-    <WasmRoslynLib Include="$(WasmRuntimePack)/runtimes/browser-wasm/lib/net8.0/netstandard.dll" />
-    <WasmRoslynLib Include="$(WasmRuntimePack)/runtimes/browser-wasm/native/System.Private.CoreLib.dll" />
-  </ItemGroup>
-
+  <!-- Copy WASM runtime DLLs to wwwroot/lib/ for Roslyn in-browser compilation.
+       Resolves the browser-wasm runtime pack path from the SDK's known location. -->
   <Target Name="CopyWasmRoslynLibs" BeforeTargets="Build;Publish">
+    <PropertyGroup>
+      <_WasmPkgPath>$(NuGetPackageRoot)microsoft.netcore.app.runtime.mono.browser-wasm/$(BundledNETCoreAppPackageVersion)</_WasmPkgPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <_WasmRoslynLib Include="$(_WasmPkgPath)/runtimes/browser-wasm/lib/net8.0/mscorlib.dll" />
+      <_WasmRoslynLib Include="$(_WasmPkgPath)/runtimes/browser-wasm/lib/net8.0/System.dll" />
+      <_WasmRoslynLib Include="$(_WasmPkgPath)/runtimes/browser-wasm/lib/net8.0/System.Console.dll" />
+      <_WasmRoslynLib Include="$(_WasmPkgPath)/runtimes/browser-wasm/lib/net8.0/System.Core.dll" />
+      <_WasmRoslynLib Include="$(_WasmPkgPath)/runtimes/browser-wasm/lib/net8.0/System.Runtime.dll" />
+      <_WasmRoslynLib Include="$(_WasmPkgPath)/runtimes/browser-wasm/lib/net8.0/System.Collections.dll" />
+      <_WasmRoslynLib Include="$(_WasmPkgPath)/runtimes/browser-wasm/lib/net8.0/netstandard.dll" />
+      <_WasmRoslynLib Include="$(_WasmPkgPath)/runtimes/browser-wasm/native/System.Private.CoreLib.dll" />
+    </ItemGroup>
     <MakeDir Directories="wwwroot/lib" />
-    <Copy SourceFiles="@(WasmRoslynLib)" DestinationFolder="wwwroot/lib" SkipUnchangedFiles="true" />
-    <Message Importance="high" Text="Copied %(WasmRoslynLib.Filename)%(WasmRoslynLib.Extension) to wwwroot/lib/" />
+    <Copy SourceFiles="@(_WasmRoslynLib)" DestinationFolder="wwwroot/lib" SkipUnchangedFiles="true" />
+    <Message Importance="high" Text="Roslyn libs: copied from $(_WasmPkgPath)" />
   </Target>
 
 </Project>
