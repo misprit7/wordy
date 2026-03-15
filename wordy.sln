@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wordy", "src\wordy.csproj", "{23DA3296-F106-4041-A94A-38A53829EF12}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bin", "bin", "{80B6E7A1-EA45-4096-A3C0-8DC4FA51A3D1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cli", "bin\cli\cli.csproj", "{0B8C587A-0F0F-4621-93B9-50094FE81380}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "web", "web\web.csproj", "{27904739-F356-4536-8AA1-CAC1F714C666}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{23DA3296-F106-4041-A94A-38A53829EF12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23DA3296-F106-4041-A94A-38A53829EF12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23DA3296-F106-4041-A94A-38A53829EF12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23DA3296-F106-4041-A94A-38A53829EF12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B8C587A-0F0F-4621-93B9-50094FE81380}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B8C587A-0F0F-4621-93B9-50094FE81380}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B8C587A-0F0F-4621-93B9-50094FE81380}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B8C587A-0F0F-4621-93B9-50094FE81380}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27904739-F356-4536-8AA1-CAC1F714C666}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27904739-F356-4536-8AA1-CAC1F714C666}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27904739-F356-4536-8AA1-CAC1F714C666}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27904739-F356-4536-8AA1-CAC1F714C666}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0B8C587A-0F0F-4621-93B9-50094FE81380} = {80B6E7A1-EA45-4096-A3C0-8DC4FA51A3D1}
+	EndGlobalSection
+EndGlobal

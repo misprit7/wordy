@@ -29,6 +29,7 @@ x86/
 [Aa][Rr][Mm]64/
 bld/
 [Bb]in/
+!bin/cli/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
@@ -397,6 +398,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# .NET reference DLLs for Blazor WASM Roslyn (regenerate with web/copy-libs.sh)
+web/wwwroot/lib/*.dll
 
 # Generated docx test files
 docx/generated/*

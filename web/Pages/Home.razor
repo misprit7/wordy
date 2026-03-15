@@ -1,0 +1,163 @@
+@page "/"
+@using web.Services
+@inject WordyCompiler Compiler
+
+<div class="app-container">
+    <!-- Title Bar -->
+    <div class="title-bar">
+        <div class="title-bar-icon">W</div>
+        <div class="title-bar-text">Wordy Online Compiler</div>
+        <div class="title-bar-buttons">
+            <button class="title-bar-btn">&#x2500;</button>
+            <button class="title-bar-btn">&#x25A1;</button>
+            <button class="title-bar-btn close">&#x2715;</button>
+        </div>
+    </div>
+
+    <!-- Ribbon Tabs -->
+    <div class="ribbon-tabs">
+        <button class="ribbon-tab file-tab">File</button>
+        <button class="ribbon-tab @(activeTab == "compiler" ? "active" : "")" @onclick='() => activeTab = "compiler"'>Compiler</button>
+        <button class="ribbon-tab @(activeTab == "docs" ? "active" : "")" @onclick='() => activeTab = "docs"'>Documentation</button>
+    </div>
+
+    <!-- Ribbon Panel -->
+    <div class="ribbon-panel">
+        @if (activeTab == "compiler")
+        {
+            <div class="ribbon-group">
+                <div class="ribbon-group-content">
+                    <label class="ribbon-btn upload-btn" for="docxUpload">
+                        <span class="ribbon-btn-icon">&#x1F4C4;</span>
+                        <span>Upload<br/>.docx</span>
+                    </label>
+                    <InputFile id="docxUpload" OnChange="HandleFileUpload" accept=".docx" style="display:none" />
+                </div>
+                <div class="ribbon-group-label">File</div>
+            </div>
+            <div class="ribbon-group">
+                <div class="ribbon-group-content">
+                    <button class="ribbon-btn @(isCompiling ? "disabled" : "")" @onclick="RunCompiler" disabled="@(uploadedFile == null || isCompiling)">
+                        <span class="ribbon-btn-icon">&#x25B6;</span>
+                        <span>@(isCompiling ? "Running..." : "Run")</span>
+                    </button>
+                </div>
+                <div class="ribbon-group-label">Execute</div>
+            </div>
+            <div class="ribbon-group">
+                <div class="ribbon-group-content file-info">
+                    @if (uploadedFile != null)
+                    {
+                        <span class="file-name">@uploadedFile.Name</span>
+                        <span class="file-size">@FormatSize(uploadedFile.Size)</span>
+                    }
+                    else
+                    {
+                        <span class="file-hint">No file uploaded</span>
+                    }
+                </div>
+                <div class="ribbon-group-label">Document</div>
+            </div>
+        }
+        else
+        {
+            <div class="ribbon-group">
+                <div class="ribbon-group-content">
+                    <span class="ribbon-hint">See the Wordy language reference below.</span>
+                </div>
+                <div class="ribbon-group-label">Help</div>
+            </div>
+        }
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-area">
+        @if (activeTab == "compiler")
+        {
+            <div class="panels">
+                <!-- C# Source Panel -->
+                <div class="panel">
+                    <div class="panel-header">Generated C#</div>
+                    <div class="panel-body code">
+                        <pre>@(result?.CSharpSource ?? "// Upload a .docx file and click Run")</pre>
+                    </div>
+                </div>
+
+                <!-- Console Output Panel -->
+                <div class="panel">
+                    <div class="panel-header">Console Output</div>
+                    <div class="panel-body console @(result?.Success == false ? "has-error" : "")">
+                        @if (result != null)
+                        {
+                            @if (result.Output != null)
+                            {
+                                <pre class="output">@result.Output</pre>
+                            }
+                            @if (result.Error != null)
+                            {
+                                <pre class="error">@result.Error</pre>
+                            }
+                        }
+                        else if (isCompiling)
+                        {
+                            <div class="loading">Compiling...</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <iframe src="docs/index.html" class="docs-frame"></iframe>
+        }
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span>@statusText</span>
+        <span class="status-right">Wordy Compiler v1.0</span>
+    </div>
+</div>
+
+@code {
+    private string activeTab = "compiler";
+    private IBrowserFile? uploadedFile;
+    private CompilationResult? result;
+    private bool isCompiling;
+    private string statusText = "Ready";
+
+    private void HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        uploadedFile = e.File;
+        result = null;
+        statusText = $"Loaded: {uploadedFile.Name}";
+    }
+
+    private async Task RunCompiler()
+    {
+        if (uploadedFile == null || isCompiling) return;
+
+        isCompiling = true;
+        result = null;
+        statusText = "Compiling...";
+        StateHasChanged();
+
+        await Task.Yield(); // Let UI update
+
+        using var stream = uploadedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        ms.Position = 0;
+
+        result = await Compiler.CompileAndRunAsync(ms);
+        isCompiling = false;
+        statusText = result.Success ? "Compiled and executed successfully" : "Compilation failed";
+    }
+
+    private string FormatSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / (1024.0 * 1024.0):F1} MB";
+    }
+}

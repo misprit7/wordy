@@ -8,6 +8,17 @@ public static class DocumentReader
     public static DocumentIR Read(string path)
     {
         using var doc = WordprocessingDocument.Open(path, false);
+        return ReadDocument(doc);
+    }
+
+    public static DocumentIR Read(Stream stream)
+    {
+        using var doc = WordprocessingDocument.Open(stream, false);
+        return ReadDocument(doc);
+    }
+
+    private static DocumentIR ReadDocument(WordprocessingDocument doc)
+    {
         var body = doc.MainDocumentPart?.Document?.Body
             ?? throw new InvalidOperationException("Document has no body");
 
