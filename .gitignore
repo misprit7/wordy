@@ -1,9 +1,12 @@
 # .NET build output
-**/bin/
 **/obj/
-# Exception: bin/cli/ is a source directory, not build output
+# Ignore all bin/ directories except bin/cli/ source
+**/bin/
+!bin/
+bin/*
 !bin/cli/
-!bin/cli/**
+bin/cli/bin/
+bin/cli/obj/
 
 # IDE / editor
 .vs/
