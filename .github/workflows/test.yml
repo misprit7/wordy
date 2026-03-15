@@ -101,6 +101,11 @@ jobs:
           one
           two
           Fizz
+          2
+          11
+          28
+          3
+          5
           EOF
           if [ "$output" != "$expected" ]; then
             echo "FAIL: Comprehensive"
